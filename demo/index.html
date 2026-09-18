@@ -467,7 +467,7 @@ body {
 /* 动画人物 */
 .anim-person { position:absolute; font-size:16px; pointer-events:none; z-index:5; transition:all 0.8s ease-out; }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 </head>
 <body>
 
@@ -511,32 +511,31 @@ body {
       <div id="satisfaction-bar" style="height:100%;width:94%;background:linear-gradient(90deg,#fbbf24,#34d399);border-radius:2px;transition:width 1s;"></div>
     </div>
   </div>
-</div>
 
-  <!-- AI客流预测面板 -->
-  <div id="predict-panel" style="margin-top:10px;">
-    <div class="panel-title">🤖 AI客流预测 (置信度92%)</div>
-    <div class="predict-chart" id="predict-chart"></div>
-    <div class="predict-list" id="predict-list"></div>
-  </div>
+      <!-- AI客流预测面板 -->
+    <div id="predict-panel" style="margin-top:10px;">
+      <div class="panel-title">🤖 AI客流预测 (置信度92%)</div>
+      <div class="predict-chart" id="predict-chart"></div>
+      <div class="predict-list" id="predict-list"></div>
+    </div>
 
-  <!-- 游客画像面板 -->
-  <div id="profile-panel" style="margin-top:10px;">
-    <div class="panel-title">👥 游客画像分析</div>
-    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🗺️ 客源地分布</div>
-    <div class="profile-chart" id="profile-source-chart" style="height:130px;"></div>
-    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">📊 年龄结构</div>
-    <div class="profile-chart" id="profile-age-chart" style="height:100px;"></div>
-    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🚩 出行类型</div>
-    <div class="profile-chart" id="profile-type-chart" style="height:110px;"></div>
-  </div>
+    <!-- 游客画像面板 -->
+    <div id="profile-panel" style="margin-top:10px;">
+      <div class="panel-title">👥 游客画像分析</div>
+      <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🗺️ 客源地分布</div>
+      <div class="profile-chart" id="profile-source-chart" style="height:130px;"></div>
+      <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">📊 年龄结构</div>
+      <div class="profile-chart" id="profile-age-chart" style="height:100px;"></div>
+      <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🚩 出行类型</div>
+      <div class="profile-chart" id="profile-type-chart" style="height:110px;"></div>
+    </div>
 
-  <!-- 旅行社入园数据 -->
-  <div id="agency-panel" style="margin-top:10px;">
-    <div class="panel-title">🚩 旅行社入园数据</div>
-    <div id="agency-list"></div>
+    <!-- 旅行社入园数据 -->
+    <div id="agency-panel" style="margin-top:10px;">
+      <div class="panel-title">🚩 旅行社入园数据</div>
+      <div id="agency-list"></div>
+    </div>
   </div>
-</div>
 
 <div id="right-panel" class="panel">
   <div class="panel-tabs">
@@ -550,6 +549,8 @@ body {
     <div class="panel-title">景区概览</div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">各功能区实时状态</div>
     <ul class="zone-list" id="zone-list"></ul>
+    <div class="panel-title" style="margin-top:12px;">📋 各景点客流</div>
+    <div id="visitor-list"></div>
     <div class="panel-title" style="margin-top:16px;">设施运行状态</div>
     <div id="facility-list"></div>
   </div>
@@ -563,18 +564,23 @@ body {
 
   <!-- Tab: 网评舆情 -->
   <div id="tab-review" style="display:none;">
-    <div class="panel-title">网评舆情</div>
-    <div class="sentiment-bar" id="sentiment-bar">
-      <div class="sentiment-pos" id="sent-pos" style="width:65%;"></div>
-      <div class="sentiment-neu" id="sent-neu" style="width:22%;"></div>
-      <div class="sentiment-neg" id="sent-neg" style="width:13%;"></div>
+    <div class="panel-title">💬 网评舆情 <span style="font-size:9px;color:var(--text-muted);">实时更新</span></div>
+    <div class="review-feed" id="review-feed" style="max-height:320px;overflow-y:auto;"></div>
+    <div class="sentiment-bar-wrap">
+      <span class="sentiment-bar-label">😊正面</span>
+      <div class="sentiment-bar-track"><div class="sentiment-bar-pos" id="sentiment-pos-bar" style="width:65%;">65%</div></div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:10px;">
-      <span>😊 正面 <span id="sent-pos-val">65%</span></span>
-      <span>😐 中性 <span id="sent-neu-val">22%</span></span>
-      <span>😞 负面 <span id="sent-neg-val">13%</span></span>
+    <div class="sentiment-bar-wrap">
+      <span class="sentiment-bar-label">😞负面</span>
+      <div class="sentiment-bar-track"><div class="sentiment-bar-neg" id="sentiment-neg-bar" style="width:35%;">35%</div></div>
     </div>
-    <div id="review-feed" style="max-height:320px;overflow-y:auto;"></div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:8px;margin-bottom:4px;">🏷️ 关键词云</div>
+    <div class="keyword-cloud" id="keyword-cloud"></div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:8px;margin-bottom:4px;">📈 情感趋势</div>
+    <div class="sentiment-chart" id="sentiment-chart"></div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:8px;margin-bottom:4px;">🔍 服务短板识别</div>
+    <div class="service-chart" id="service-chart"></div>
+    <div class="gap-list" id="gap-list"></div>
   </div>
 </div>
 
@@ -695,6 +701,7 @@ body {
 </div>
 
 <canvas id="three-canvas"></canvas>
+<div id="css2d-container" style="position:fixed;top:0;left:0;pointer-events:none;z-index:3;"></div>
 
 <script type="importmap">
 {
@@ -1837,6 +1844,7 @@ window.addEventListener('keydown', (e) => {
 const echartsInstances = {};
 
 function getOrCreateChart(domId) {
+  if (typeof echarts === 'undefined') { console.warn('ECharts not loaded'); return null; }
   if (echartsInstances[domId]) {
     echartsInstances[domId].dispose();
   }
@@ -2842,6 +2850,7 @@ const visitorProfile = {
 };
 
 function updateVisitorProfile() {
+  if (typeof echarts === 'undefined') return;
   const sourceDom = document.getElementById('profile-source-chart');
   const ageDom = document.getElementById('profile-age-chart');
   const typeDom = document.getElementById('profile-type-chart');
