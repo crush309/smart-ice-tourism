@@ -2670,6 +2670,18 @@ function openMonitorScreen(cameraName) {
   // 入口位置（建筑正前方偏下，模拟大门）
   const entranceX = bldCX + depth * 0.08, entranceY = bldCY + bh * 0.15;
 
+  // 初始填充人员（根据当前密度，在建筑门口区域散布）
+  const initialCount = Math.min(100, Math.round(bld.density * 0.38));
+  for (let i = 0; i < initialCount; i++) {
+    people.push({
+      x: entranceX + (Math.random() - 0.5) * bw * 0.55,
+      y: entranceY + (Math.random() - 0.5) * bh * 0.15,
+      tx: entranceX + (Math.random() - 0.5) * bw * 0.55,
+      ty: entranceY + (Math.random() - 0.5) * bh * 0.15,
+      phase: 'idle', speed: 30 + Math.random() * 50, idleTimer: Math.random() * 80,
+    });
+  }
+
   // 窗户闪烁状态（持久化）
   const windowStates = [];
   const wCols = Math.max(3, Math.floor(bw / 8)), wRows = Math.max(3, Math.floor(bh / 10));
@@ -2986,38 +2998,54 @@ function openMonitorScreen(cameraName) {
     const edgeDist = Math.min(bw * 1.4, 200);
     const peoplePerUnit = 0.38; // 每个人物粒子代表多少人
 
-    // 密度增加 → 生成进场人物（红色，从边缘走向建筑）
-    if (densityDelta > 0.5 && d.people.length < 120) {
+    // 密度增加 → 累积进场需求（跨帧积分）
+    if (densityDelta > 0) {
       _spawnDebt += densityDelta * peoplePerUnit;
-      const toSpawn = Math.min(Math.floor(_spawnDebt), 4);
-      _spawnDebt -= toSpawn;
-      for (let s = 0; s < toSpawn; s++) {
-        const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15; // 前方扇形
-        const startDist = edgeDist + Math.random() * 60;
-        d.people.push({
-          x: bldCX + Math.cos(angle) * startDist,
-          y: bldCY + Math.sin(angle) * startDist * 0.4,
-          tx: entranceX + (Math.random() - 0.5) * bw * 0.4,
-          ty: entranceY + Math.random() * bh * 0.08,
-          phase: 'enter', speed: 55 + Math.random() * 75, idleTimer: 0,
-        });
-      }
+    }
+    // 密度减少 → 累积出场需求
+    if (densityDelta < 0) {
+      _spawnDebt += densityDelta * peoplePerUnit; // 负值累积
     }
 
-    // 密度减少 → 转换空闲人物为出场（红色，从建筑走向边缘）
-    if (densityDelta < -0.5 && d.people.length > 0) {
-      let exitCount = Math.min(Math.round(-densityDelta * peoplePerUnit), 4);
-      for (let s = 0; s < exitCount; s++) {
-        const idx = d.people.findIndex(p => p.phase === 'idle');
-        if (idx < 0) break;
-        const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15;
-        const exitDist = edgeDist + 30 + Math.random() * 50;
-        d.people[idx].phase = 'exit';
-        d.people[idx].tx = bldCX + Math.cos(angle) * exitDist;
-        d.people[idx].ty = bldCY + Math.sin(angle) * exitDist * 0.4;
-        d.people[idx].speed = 65 + Math.random() * 85;
-      }
+    // 生成进场人物（红色，从边缘走向建筑）
+    while (_spawnDebt >= 0.6 && d.people.length < 120) {
+      _spawnDebt -= 1;
+      const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15; // 前方扇形
+      const startDist = edgeDist + Math.random() * 60;
+      d.people.push({
+        x: bldCX + Math.cos(angle) * startDist,
+        y: bldCY + Math.sin(angle) * startDist * 0.4,
+        tx: entranceX + (Math.random() - 0.5) * bw * 0.4,
+        ty: entranceY + Math.random() * bh * 0.08,
+        phase: 'enter', speed: 55 + Math.random() * 75, idleTimer: 0,
+      });
     }
+
+    // 转换出场人物（红色，从建筑走向边缘）
+    while (_spawnDebt <= -0.6 && d.people.length > 0) {
+      _spawnDebt += 1;
+      const idx = d.people.findIndex(p => p.phase === 'idle');
+      if (idx < 0) break;
+      const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15;
+      const exitDist = edgeDist + 30 + Math.random() * 50;
+      d.people[idx].phase = 'exit';
+      d.people[idx].tx = bldCX + Math.cos(angle) * exitDist;
+      d.people[idx].ty = bldCY + Math.sin(angle) * exitDist * 0.4;
+      d.people[idx].speed = 65 + Math.random() * 85;
+    }
+
+    // 当人群太少时直接补充（防止全部出场后画面空空）
+    const minPeople = Math.max(5, Math.round(curDensity * 0.12));
+    while (d.people.length < minPeople) {
+      d.people.push({
+        x: entranceX + (Math.random() - 0.5) * bw * 0.55,
+        y: entranceY + (Math.random() - 0.5) * bh * 0.15,
+        tx: entranceX + (Math.random() - 0.5) * bw * 0.55,
+        ty: entranceY + (Math.random() - 0.5) * bh * 0.15,
+        phase: 'idle', speed: 30 + Math.random() * 50, idleTimer: Math.random() * 60,
+      });
+    }
+
     _prevDensity = curDensity;
 
     // 绘制人物（小人形状：头+身体+方向指示）
