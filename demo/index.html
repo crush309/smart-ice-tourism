@@ -2119,6 +2119,7 @@ function closeDetail() {
   detailBuilding = null;
   if (detailChart) { detailChart.dispose(); detailChart = null; }
 }
+window.closeDetail = closeDetail;
 
 function focusBuilding() {
   if (!detailBuilding) return;
@@ -2128,6 +2129,7 @@ function focusBuilding() {
   controls.update();
   closeDetail();
 }
+window.focusBuilding = focusBuilding;
 
 // ── AI客流预测 ──
 const weatherFactors = { '晴': 1.08, '多云': 0.95, '阴': 0.88, '小雪': 0.85, '大雪': 0.72 };
@@ -2450,10 +2452,12 @@ function showSolution(name, score) {
   document.getElementById('sol-effect').textContent = '📈 ' + plan.effect;
   document.getElementById('solution-modal').classList.add('show');
 }
+window.showSolution = showSolution;
 
 function closeSolution() {
   document.getElementById('solution-modal').classList.remove('show');
 }
+window.closeSolution = closeSolution;
 /* ══════════════════════════════════════════════
    JS Part 3: 业态营收 | 业态融合 | 监控增强 | 评论重写 | 队列修复 | 启动修改
    ══════════════════════════════════════════════ */
@@ -2472,6 +2476,7 @@ function switchRevTab(mode, el) {
   document.getElementById('rev-chart').style.display = mode === 'chart' ? '' : 'none';
   if (mode === 'chart') setTimeout(updateRevenueChart, 150);
 }
+window.switchRevTab = switchRevTab;
 
 function updateRevenueDetail() {
   const totalVisitors = buildingDefs.reduce((s, b) => s + b.density, 0);
@@ -2661,6 +2666,7 @@ function selectTicket(idx) {
     reason.style.display = 'block';
   }
 }
+window.selectTicket = selectTicket;
 
 // ── 增强监控系统 ──
 const cameraTargetBuildings = [
