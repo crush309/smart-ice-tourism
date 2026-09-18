@@ -221,6 +221,20 @@ body {
   position: fixed; bottom: 56px; left: 16px; z-index: 10;
   width: 260px;
 }
+#inspection-panel .panel-title {
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#inspection-panel .panel-title .toggle-btn {
+  width: 22px; height: 22px; line-height: 20px; text-align: center;
+  border-radius: 4px; background: rgba(255,255,255,0.08);
+  font-size: 14px; font-weight: bold; color: var(--text-muted);
+  transition: transform 0.25s;
+}
+#inspection-panel.collapsed .panel-title .toggle-btn {
+  transform: rotate(-90deg);
+}
+#inspection-panel.collapsed #inspect-list { display: none; }
 .inspect-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 10px; margin-bottom: 4px;
@@ -415,6 +429,8 @@ body {
 .review-item .rev-sentiment.pos { background:rgba(34,197,94,0.15); color:#22c55e; }
 .review-item .rev-sentiment.neg { background:rgba(239,68,68,0.15); color:#ef4444; }
 @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes slideUpFadeOut { from { opacity:1; max-height:60px; } to { opacity:0; max-height:0; padding:0; margin:0; } }
+.review-item.removing { animation: slideUpFadeOut 0.4s ease-in forwards; overflow:hidden; }
 .sentiment-bar-wrap { display:flex; gap:10px; margin:8px 0; }
 .sentiment-bar-label { font-size:10px; color:var(--text-muted); width:36px; }
 .sentiment-bar-track { flex:1; height:14px; background:rgba(255,255,255,0.04); border-radius:7px; overflow:hidden; display:flex; }
@@ -502,25 +518,25 @@ body {
 
 <div id="left-panel" class="panel">
   <div class="panel-title">实时客流数据</div>
-  <div class="stat-tile">
+  <div class="stat-tile" onclick="clickStatTile('visitors')" style="cursor:pointer;">
     <div class="stat-label">当前在园人数</div>
     <div class="stat-value" id="current-visitors">8,523</div>
     <div class="stat-delta up" id="visitor-delta">↑ 5.2% 较上时段</div>
   </div>
-  <div class="stat-tile">
+  <div class="stat-tile" style="cursor:pointer;" onclick="clickStatTile('totalToday')">
     <div class="stat-label">今日累计入园</div>
     <div class="stat-value" id="total-today">32,180</div>
     <div class="stat-delta up">↑ 12.8% 较昨日</div>
   </div>
   <canvas id="sparkline-canvas" width="456" height="160"></canvas>
-  <div class="stat-tile" style="margin-top:10px;">
+  <div class="stat-tile" style="margin-top:10px;cursor:pointer;" onclick="clickStatTile('entryRate')">
     <div class="stat-label">实时入园速率</div>
     <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
       <span style="font-size:24px;font-weight:700;color:var(--accent-glow);" id="entry-rate">186</span>
       <span style="font-size:12px;color:var(--text-secondary);">人/分钟</span>
     </div>
   </div>
-  <div class="stat-tile" style="margin-top:10px;">
+  <div class="stat-tile" style="margin-top:10px;cursor:pointer;" onclick="clickStatTile('revenue')">
     <div class="stat-label">今日预估营收</div>
     <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
       <span style="font-size:22px;font-weight:700;color:#34d399;" id="revenue-today">386.5</span>
@@ -528,7 +544,7 @@ body {
     </div>
     <div class="stat-delta up" id="revenue-delta">↑ 8.3% 较昨日</div>
   </div>
-  <div class="stat-tile" style="margin-top:10px;">
+  <div class="stat-tile" style="margin-top:10px;cursor:pointer;" onclick="clickStatTile('satisfaction')">
     <div class="stat-label">游客满意度</div>
     <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
       <span style="font-size:22px;font-weight:700;color:#fbbf24;" id="satisfaction">94.2</span>
@@ -621,12 +637,12 @@ body {
       <div class="rev-tab" onclick="switchRevTab('chart',this)">趋势</div>
     </div>
     <div id="rev-summary">
-      <div class="rev-row"><span class="rev-name">今日总营收</span><span class="rev-val" id="rev-total" style="font-size:16px;color:var(--accent-ice);">¥0</span></div>
-      <div class="rev-row"><span class="rev-name">门票收入</span><span class="rev-val" id="rev-ticket">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-ticket" style="width:0%"></div></div></div>
-      <div class="rev-row"><span class="rev-name">酒店住宿</span><span class="rev-val" id="rev-hotel">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-hotel" style="width:0%"></div></div></div>
-      <div class="rev-row"><span class="rev-name">餐饮消费</span><span class="rev-val" id="rev-dining">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-dining" style="width:0%"></div></div></div>
-      <div class="rev-row"><span class="rev-name">零售购物</span><span class="rev-val" id="rev-retail">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-retail" style="width:0%"></div></div></div>
-      <div class="rev-row"><span class="rev-name">停车收入</span><span class="rev-val" id="rev-parking">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-parking" style="width:0%"></div></div></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">今日总营收</span><span class="rev-val" id="rev-total" style="font-size:16px;color:var(--accent-ice);">¥0</span></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">门票收入</span><span class="rev-val" id="rev-ticket">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-ticket" style="width:0%"></div></div></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">酒店住宿</span><span class="rev-val" id="rev-hotel">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-hotel" style="width:0%"></div></div></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">餐饮消费</span><span class="rev-val" id="rev-dining">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-dining" style="width:0%"></div></div></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">零售购物</span><span class="rev-val" id="rev-retail">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-retail" style="width:0%"></div></div></div>
+      <div class="rev-row" style="cursor:pointer;" onclick="clickStatTile('revenue')"><span class="rev-name">停车收入</span><span class="rev-val" id="rev-parking">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-parking" style="width:0%"></div></div></div>
     </div>
     <div id="rev-detail" style="display:none;">
       <div class="rev-detail" id="rev-detail-content"></div>
@@ -642,10 +658,10 @@ body {
     <div class="int-section">
       <div class="int-section-title">RFM客群分层</div>
       <div class="rfm-grid">
-        <div class="rfm-cell"><div class="rfm-pct" style="color:#f59e0b;" id="rfm-high">23%</div><div class="rfm-label">高价值</div></div>
-        <div class="rfm-cell"><div class="rfm-pct" style="color:#22c55e;" id="rfm-active">41%</div><div class="rfm-label">活跃型</div></div>
-        <div class="rfm-cell"><div class="rfm-pct" style="color:#3b82f6;" id="rfm-potential">22%</div><div class="rfm-label">潜力型</div></div>
-        <div class="rfm-cell"><div class="rfm-pct" style="color:var(--text-muted);" id="rfm-atrisk">14%</div><div class="rfm-label">流失风险</div></div>
+        <div class="rfm-cell" style="cursor:pointer;" onclick="clickStatTile('visitors')"><div class="rfm-pct" style="color:#f59e0b;" id="rfm-high">23%</div><div class="rfm-label">高价值</div></div>
+        <div class="rfm-cell" style="cursor:pointer;" onclick="clickStatTile('revenue')"><div class="rfm-pct" style="color:#22c55e;" id="rfm-active">41%</div><div class="rfm-label">活跃型</div></div>
+        <div class="rfm-cell" style="cursor:pointer;" onclick="clickStatTile('satisfaction')"><div class="rfm-pct" style="color:#3b82f6;" id="rfm-potential">22%</div><div class="rfm-label">潜力型</div></div>
+        <div class="rfm-cell" style="cursor:pointer;" onclick="clickStatTile('totalToday')"><div class="rfm-pct" style="color:var(--text-muted);" id="rfm-atrisk">14%</div><div class="rfm-label">流失风险</div></div>
       </div>
     </div>
     <div class="int-section">
@@ -677,7 +693,10 @@ body {
 
 <!-- 巡检工作面板 -->
 <div id="inspection-panel" class="panel">
-  <div class="panel-title">🔍 日常巡检工作</div>
+  <div class="panel-title" onclick="toggleInspection()">
+    <span>🔍 日常巡检工作</span>
+    <span class="toggle-btn">▼</span>
+  </div>
   <div id="inspect-list"></div>
 </div>
 
@@ -945,12 +964,12 @@ function createPath(x, z, length, rotation) {
   line.position.set(x, -0.44, z);
   scene.add(line);
 }
-createPath(0, -2, 12, 0);       // Main path south
-createPath(0, 4, 14, 0);        // Main path north
-createPath(-5, 0, 12, Math.PI/2); // West path
-createPath(5, 0, 12, Math.PI/2);  // East path
-createPath(7, 3, 8, Math.PI/4);   // Diagonal SE
-createPath(-7, 3, 8, -Math.PI/4); // Diagonal SW
+createPath(0, -3, 24, 0);        // Main path south (冰晶城堡 → 南入口)
+createPath(0, 5, 18, 0);         // Main path north (冰晶城堡 → 北极光塔/北入口)
+createPath(-6, 0, 20, Math.PI/2); // West path (冰晶城堡 → 冰雕花园)
+createPath(6, 0, 20, Math.PI/2);  // East path (冰晶城堡 → 许愿塔)
+createPath(9, 4, 10, Math.PI/4);   // Diagonal SE (望雪塔 → 许愿塔)
+createPath(-9, 5, 10, -Math.PI/4); // Diagonal SW (冰雕花园 → 冰雪宫殿)
 
 // ── Building Generator ──
 function createIceMaterial(color, opacity = 0.55) {
@@ -1327,24 +1346,24 @@ function createBuilding(x, z, config) {
 // ── Place Buildings ──
 const buildings = [];
 const buildingDefs = [
-  // Central cluster
-  { x: 0, z: -5, type: 'tower', height: 13, width: 4, depth: 4, color: '#8cc8f0', roofColor: '#b8e0ff', label: '冰晶城堡', density: 320 },
-  { x: -9, z: -2, type: 'palace', height: 7, width: 8, depth: 6, color: '#7db8e8', roofColor: '#a8d8f8', label: '冰雪宫殿', density: 245 },
-  { x: 10, z: -4, type: 'slide', height: 1, width: 13, depth: 3, color: '#90d0f8', roofColor: '#c0e8ff', label: '极速冰滑梯', density: 180 },
-  { x: -3, z: 7, type: 'dome', height: 2, width: 5, depth: 5, color: '#88c8f0', roofColor: '#b0dcf8', label: '梦幻雪圈', density: 155 },
-  { x: 8, z: 6, type: 'tower', height: 8, width: 3, depth: 3, color: '#82c4ec', roofColor: '#a8d8f8', label: '望雪塔', density: 98 },
-  { x: -10, z: 11.5, type: 'gate', height: 10, width: 6, depth: 2, color: '#78bce4', roofColor: '#a0d4f4', label: '北入口', density: 420 },
-  { x: 4.5, z: -12, type: 'palace', height: 5, width: 6, depth: 5, color: '#86c8f0', roofColor: '#b4dcf8', label: '冰酒吧', density: 135 },
-  { x: -6, z: -11, type: 'tower', height: 7, width: 2.5, depth: 2.5, color: '#8acaf2', roofColor: '#b8e0ff', label: '观景塔', density: 72 },
-  // New buildings
-  { x: 12, z: 4, type: 'pagoda', height: 6, width: 3, depth: 3, color: '#80c4ee', roofColor: '#b0e0ff', label: '冰晶宝塔', density: 110 },
-  { x: -17.5, z: 4.5, type: 'sculptures', height: 1, width: 5, depth: 5, color: '#90d4f8', roofColor: '#c0e8ff', label: '冰雕花园', density: 65 },
-  { x: 2.5, z: 10.5, type: 'tower', height: 9, width: 3.5, depth: 3.5, color: '#84c6ee', roofColor: '#b4dcf8', label: '北极光塔', density: 88 },
-  { x: 3, z: 1.5, type: 'dome', height: 2.5, width: 3.5, depth: 3.5, color: '#86caf2', roofColor: '#b8e4ff', label: '冰雪演艺厅', density: 200 },
-  { x: -18, z: -18, type: 'palace', height: 4.5, width: 5, depth: 4, color: '#80c0e8', roofColor: '#a8d8f8', label: '游客中心', density: 380 },
-  { x: 19, z: -6, type: 'pagoda', height: 5, width: 2.5, depth: 2.5, color: '#7ec0ea', roofColor: '#a0d4f4', label: '许愿塔', density: 55 },
-  { x: -13, z: -7.5, type: 'slide', height: 0.8, width: 9, depth: 2, color: '#8cd0f4', roofColor: '#bce4fc', label: '迷你滑道', density: 92 },
-  { x: -5, z: -16.5, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
+  // Central cluster — 拉开间距，每个建筑间至少3单位空白
+  { x: 0, z: -7, type: 'tower', height: 13, width: 4, depth: 4, color: '#8cc8f0', roofColor: '#b8e0ff', label: '冰晶城堡', density: 320 },
+  { x: -11, z: -3, type: 'palace', height: 7, width: 8, depth: 6, color: '#7db8e8', roofColor: '#a8d8f8', label: '冰雪宫殿', density: 245 },
+  { x: 13, z: -5, type: 'slide', height: 1, width: 13, depth: 3, color: '#90d0f8', roofColor: '#c0e8ff', label: '极速冰滑梯', density: 180 },
+  { x: -5, z: 9, type: 'dome', height: 2, width: 5, depth: 5, color: '#88c8f0', roofColor: '#b0dcf8', label: '梦幻雪圈', density: 155 },
+  { x: 10, z: 8, type: 'tower', height: 8, width: 3, depth: 3, color: '#82c4ec', roofColor: '#a8d8f8', label: '望雪塔', density: 98 },
+  { x: -13, z: 14, type: 'gate', height: 10, width: 6, depth: 2, color: '#78bce4', roofColor: '#a0d4f4', label: '北入口', density: 420 },
+  { x: 6, z: -15, type: 'palace', height: 5, width: 6, depth: 5, color: '#86c8f0', roofColor: '#b4dcf8', label: '冰酒吧', density: 135 },
+  { x: -8, z: -14, type: 'tower', height: 7, width: 2.5, depth: 2.5, color: '#8acaf2', roofColor: '#b8e0ff', label: '观景塔', density: 72 },
+  // Outer buildings
+  { x: 16, z: 5, type: 'pagoda', height: 6, width: 3, depth: 3, color: '#80c4ee', roofColor: '#b0e0ff', label: '冰晶宝塔', density: 110 },
+  { x: -22, z: 6, type: 'sculptures', height: 1, width: 5, depth: 5, color: '#90d4f8', roofColor: '#c0e8ff', label: '冰雕花园', density: 65 },
+  { x: 3, z: 13, type: 'tower', height: 9, width: 3.5, depth: 3.5, color: '#84c6ee', roofColor: '#b4dcf8', label: '北极光塔', density: 88 },
+  { x: 4, z: 2, type: 'dome', height: 2.5, width: 3.5, depth: 3.5, color: '#86caf2', roofColor: '#b8e4ff', label: '冰雪演艺厅', density: 200 },
+  { x: -22, z: -21, type: 'palace', height: 4.5, width: 5, depth: 4, color: '#80c0e8', roofColor: '#a8d8f8', label: '游客中心', density: 380 },
+  { x: 23, z: -8, type: 'pagoda', height: 5, width: 2.5, depth: 2.5, color: '#7ec0ea', roofColor: '#a0d4f4', label: '许愿塔', density: 55 },
+  { x: -16, z: -10, type: 'slide', height: 0.8, width: 9, depth: 2, color: '#8cd0f4', roofColor: '#bce4fc', label: '迷你滑道', density: 92 },
+  { x: -7, z: -20, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
 ];
 
 const fences = {}; // { buildingLabel: { area, border, building } }
@@ -1363,10 +1382,18 @@ const bubbles = [];
 buildings.forEach(b => {
   const div = document.createElement('div');
   div.className = 'bubble-label';
+  div.style.pointerEvents = 'auto';
+  div.style.cursor = 'pointer';
   div.innerHTML = `${b.label}<br><span class="val">${b.density}</span><span class="unit">人</span>`;
   const label = new CSS2DObject(div);
   const topY = (b.type === 'tower' ? b.height + 4 : b.type === 'gate' ? b.height + 3 : b.height + 3.5);
   label.position.set(b.x, topY, b.z);
+  // 点击气泡打开详情（使用buildingDefs实时数据）
+  div.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const def = buildingDefs.find(d => d.label === b.label);
+    if (def && def._group) openDetail(def, def._group);
+  });
   scene.add(label);
   bubbles.push({ obj: label, building: b, div });
 });
@@ -1454,7 +1481,7 @@ function renderAlerts() {
     const lvlCls = a.level === 'danger' ? 'danger' : 'warn';
     const lvlLabel = a.level === 'danger' ? '🔴 严重' : '🟡 提醒';
     const time = new Date(Date.now() - Math.random() * 600000).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-    return `<div class="alert-item ${cls}">
+    return `<div class="alert-item ${cls}" onclick="clickAlertItem('${a.msg.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="点击关闭此预警">
       <span style="flex:1;padding-right:8px;">${a.msg}</span>
       <span class="alert-level ${lvlCls}">${lvlLabel}</span>
       <span style="font-size:10px;color:var(--text-muted);margin-left:8px;">${time}</span>
@@ -1469,6 +1496,64 @@ function toggleAlert() {
   if (panel.classList.contains('show')) renderAlerts();
 }
 window.toggleAlert = toggleAlert;
+
+// ── UI元素交互处理函数 ──
+function clickStatTile(type) {
+  if (type === 'visitors') { controls.target.set(0, 1, 0); camera.position.set(0, 40, 5); controls.update(); }
+  else if (type === 'revenue') { switchTab('revenue', document.querySelector('.panel-tab:nth-child(4)')); }
+  else if (type === 'satisfaction') { switchTab('review', document.querySelector('.panel-tab:nth-child(3)')); }
+  else if (type === 'totalToday') { switchTab('overview', document.querySelector('.panel-tab:nth-child(1)')); }
+  else if (type === 'entryRate') { controls.target.set(0, -7, 0); camera.position.set(8, 30, 10); controls.update(); }
+}
+window.clickStatTile = clickStatTile;
+
+function clickZoneItem(label) {
+  const bld = buildingDefs.find(b => label.includes(b.label) || b.label.includes(label));
+  if (bld) { controls.target.set(bld.x, 3, bld.z); camera.position.set(bld.x + 10, 14, bld.z + 10); controls.update(); }
+}
+window.clickZoneItem = clickZoneItem;
+
+function clickFacilityRow(name) {
+  const f = facilityData.find(f => f.name === name);
+  if (f) { f.on = !f.on; renderFacilityList(); }
+}
+window.clickFacilityRow = clickFacilityRow;
+
+function clickReviewItem(rid) {
+  const r = reviewQueue.find(r => String(r.rid) === String(rid));
+  if (r) { alert('📝 ' + r.user + ' 的评论\n\n' + r.text + '\n\n情感: ' + (r.sentiment === 'pos' ? '正面😊' : '负面😞') + '\n分类: ' + (r.category || '综合')); }
+}
+window.clickReviewItem = clickReviewItem;
+
+function clickAgencyRow(idx) {
+  const a = agencyData[idx];
+  if (a) { alert('🚩 ' + a.name + '\n\n导游: ' + a.guide + '\n团队: ' + a.teams + '个团\n游客: ' + a.visitors + '人'); }
+}
+window.clickAgencyRow = clickAgencyRow;
+
+function clickInspectItem(name) {
+  const tasks = inspectionTasks;
+  const t = tasks.find(t => t.name === name);
+  if (t) { t.status = t.status === 'done' ? 'pending' : 'done'; renderInspection(); }
+}
+window.clickInspectItem = clickInspectItem;
+
+function clickAlertItem(msg) {
+  const idx = alertsData.findIndex(a => a.msg === msg);
+  if (idx >= 0) { alertsData.splice(idx, 1); renderAlerts(); }
+}
+window.clickAlertItem = clickAlertItem;
+
+function clickPredictDay(idx) {
+  const d = predictCache[idx];
+  if (d) {
+    const dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+    alert('📅 ' + (d.date.getMonth()+1) + '/' + d.date.getDate() + ' ' + dayNames[d.date.getDay()] +
+      '\n\n预测客流: ' + d.value.toLocaleString() + '人\n天气: ' + d.weather + ' ' + d.temp + '°C\n容量: ' + d.capacity.toLocaleString() + '人' +
+      (d.peak ? '\n\n⚠️ 周末高峰预警' : ''));
+  }
+}
+window.clickPredictDay = clickPredictDay;
 const cameraNames = ['主入口', '冰晶城堡', '极速冰滑梯', '梦幻雪圈', '冰雪大舞台', '餐饮广场', '停车场A', '游客中心'];
 const cameraCanvases = [];
 
@@ -1490,7 +1575,7 @@ function initCameras() {
     card.appendChild(canvas);
     card.appendChild(label);
     grid.appendChild(card);
-    cameraCanvases.push({ canvas, name, flicker: Math.random() });
+    cameraCanvases.push({ canvas, name, flicker: Math.random(), particles: [], _lastDensity: 0 });
   });
 }
 
@@ -1581,28 +1666,83 @@ function updateCameras() {
     }
     ctx.restore();
 
-    // ── 人员流动粒子（密度驱动）──
-    const crowdCount = Math.round(ratio * 40);
-    for (let i = 0; i < crowdCount; i++) {
-      const seed = c.name.charCodeAt(0) * 7 + i * 13;
-      const dir = i % 3;
-      let nx, ny;
-      if (dir === 0) {
-        // 建筑附近徘徊
-        nx = bx + Math.sin(seed * 1.7 + now * 0.003) * bw * 0.32;
-        ny = by + bh * 0.15 + Math.cos(seed * 2.3 + now * 0.002) * bh * 0.12;
-      } else if (dir === 1) {
-        // 向邻居方向流动（左→右或右→左）
-        const flowDir = i % 2 === 0 ? 1 : -1;
-        nx = bx + flowDir * ((seed * 1.1 + now * 0.005) % (bw * 0.5));
-        ny = by + bh * 0.2 + Math.sin(seed + now * 0.003) * bh * 0.08;
-      } else {
-        // 从入口进出
-        nx = bx + Math.sin(now * 0.004 + seed) * bw * 0.38;
-        ny = by + bh * 0.3 - ((seed + now * 0.004) % (bh * 0.5));
+    // ── 人员流动粒子（持久状态 + 进出变色）──
+    const targetCount = Math.round(ratio * 40);
+    if (!c.particles) c.particles = [];
+    const pts = c.particles;
+
+    // 入场粒子：密度上升时从边缘生成红色粒子
+    if (targetCount > pts.length && pts.length < 50) {
+      const spawnN = Math.min(targetCount - pts.length, 3);
+      for (let s = 0; s < spawnN; s++) {
+        const edgeSide = Math.floor(Math.random() * 4);
+        let sx, sy, tgtX, tgtY;
+        if (edgeSide === 0) { sx = Math.random() * w; sy = 0; }           // 顶部进入
+        else if (edgeSide === 1) { sx = w; sy = Math.random() * h * 0.7; } // 右侧进入
+        else if (edgeSide === 2) { sx = Math.random() * w; sy = h * 0.7; } // 底部进入
+        else { sx = 0; sy = Math.random() * h * 0.7; }                     // 左侧进入
+        tgtX = bx - bw * 0.3 + Math.random() * bw * 0.6;
+        tgtY = by + bh * 0.05 + Math.random() * bh * 0.3;
+        pts.push({ x: sx, y: sy, tx: tgtX, ty: tgtY, phase: 'enter', progress: 0, speed: 0.008 + Math.random() * 0.02, idleTimer: 0 });
       }
-      ctx.fillStyle = dir === 0 ? 'rgba(200,220,255,0.75)' : 'rgba(140,200,240,0.65)';
-      ctx.beginPath(); ctx.arc(nx, ny, 1.4, 0, Math.PI * 2); ctx.fill();
+    }
+    // 出场粒子：密度下降时已在建筑旁的人走向边缘并变红
+    if (targetCount < pts.length) {
+      const despawnN = Math.min(pts.length - targetCount, 3);
+      for (let s = 0; s < despawnN; s++) {
+        const idleIdx = pts.findIndex(p => p.phase === 'idle');
+        if (idleIdx >= 0) {
+          const edgeSide = Math.floor(Math.random() * 4);
+          let ex, ey;
+          if (edgeSide === 0) { ex = Math.random() * w; ey = -8; }
+          else if (edgeSide === 1) { ex = w + 8; ey = Math.random() * h * 0.7; }
+          else if (edgeSide === 2) { ex = Math.random() * w; ey = h * 0.75 + 8; }
+          else { ex = -8; ey = Math.random() * h * 0.7; }
+          pts[idleIdx].phase = 'exit';
+          pts[idleIdx].tx = ex;
+          pts[idleIdx].ty = ey;
+          pts[idleIdx].progress = 0;
+        }
+      }
+    }
+
+    // 绘制 + 更新所有粒子
+    for (let i = pts.length - 1; i >= 0; i--) {
+      const p = pts[i];
+      const dx = p.tx - p.x, dy = p.ty - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (p.phase === 'enter') {
+        if (dist < 3) { p.phase = 'idle'; p.idleTimer = 50 + Math.random() * 100; }
+        else { p.x += (dx / dist) * p.speed * 30; p.y += (dy / dist) * p.speed * 30; }
+        // 入场：红色渐变到蓝色（越靠近建筑越蓝）
+        const edgeDist = Math.sqrt((p.x - bx) * (p.x - bx) + (p.y - by) * (p.y - by));
+        const t = Math.min(1, 1 - edgeDist / Math.max(1, bw));
+        const r = Math.round(255 - t * 130), g = Math.round(50 + t * 180), bv = Math.round(50 + t * 200);
+        ctx.fillStyle = `rgba(${r},${g},${bv},0.8)`;
+      } else if (p.phase === 'exit') {
+        if (dist < 3 || p.x < -10 || p.x > w + 10 || p.y < -10 || p.y > h + 10) {
+          pts.splice(i, 1); continue;
+        }
+        p.x += (dx / dist) * p.speed * 35; p.y += (dy / dist) * p.speed * 35;
+        // 出场：蓝色渐变到红色（越远离建筑越红）
+        const edgeDist = Math.sqrt((p.x - bx) * (p.x - bx) + (p.y - by) * (p.y - by));
+        const t = Math.min(1, edgeDist / Math.max(1, bw));
+        const r = Math.round(100 + t * 155), g = Math.round(180 - t * 140), bv = Math.round(200 - t * 160);
+        ctx.fillStyle = `rgba(${r},${g},${bv},0.75)`;
+      } else {
+        // idle：建筑周围漫步（冰蓝色）
+        p.idleTimer--;
+        if (p.idleTimer <= 0) {
+          p.tx = bx - bw * 0.28 + Math.random() * bw * 0.56;
+          p.ty = by + bh * 0.05 + Math.random() * bh * 0.3;
+          p.idleTimer = 40 + Math.random() * 80;
+          p.speed = 0.003 + Math.random() * 0.012;
+        }
+        if (dist > 1.5) { p.x += (dx / dist) * p.speed * 25; p.y += (dy / dist) * p.speed * 25; }
+        ctx.fillStyle = 'rgba(150,210,250,0.7)';
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2); ctx.fill();
     }
 
     // ── 邻接建筑流量指示（右上方）──
@@ -1653,12 +1793,16 @@ const inspectionTasks = [
   { name: '紧急疏散通道检查', status: 'issue', time: '09:30' },
 ];
 
+function toggleInspection() {
+  const panel = document.getElementById('inspection-panel');
+  panel.classList.toggle('collapsed');
+}
 function renderInspection() {
   const list = document.getElementById('inspect-list');
   list.innerHTML = inspectionTasks.map(t => {
     const cls = t.status === 'done' ? 'done' : t.status === 'pending' ? 'pending' : 'issue';
     const label = t.status === 'done' ? '✅ 已完成' : t.status === 'pending' ? '⏳ 待执行' : '⚠️ 异常';
-    return `<div class="inspect-item">
+    return `<div class="inspect-item" onclick="clickInspectItem('${t.name}')" style="cursor:pointer;" title="点击切换状态">
       <span class="inspect-name">${t.name}</span>
       <span class="inspect-status ${cls}">${label}</span>
     </div>`;
@@ -1879,7 +2023,7 @@ const facilityData = [
 
 function renderZoneList() {
   zoneList.innerHTML = zoneData.map(z => `
-    <li class="zone-item">
+    <li class="zone-item" onclick="clickZoneItem('${z.name}')" style="cursor:pointer;">
       <div>
         <div class="zone-name">${z.name}</div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
@@ -1896,7 +2040,7 @@ function renderZoneList() {
 
 function renderFacilityList() {
   facilityList.innerHTML = facilityData.map(f => `
-    <div class="facility-row">
+    <div class="facility-row" onclick="clickFacilityRow('${f.name}')" style="cursor:pointer;" title="点击切换状态">
       <span>${f.name}</span>
       <span class="facility-status ${f.on ? 'on' : 'off'}">${f.on ? '● 在线' : '○ 离线'}</span>
     </div>
@@ -2293,8 +2437,12 @@ function tickDataTargets() {
 
   // 更新 dataState（与建筑密度保持一致）
   dataState.currentVisitors = totalAfter;
-  dataState.entryRate = Math.round((totalAfter - totalBefore) / 5 * 60); // 人/分钟
-  dataState.entryRate = Math.max(-80, Math.min(200, dataState.entryRate));
+  const rawRate = Math.round((totalAfter - totalBefore) / 5 * 60);
+  // 指数移动平均平滑，避免大幅波动
+  if (!dataState._entryRateEMA) dataState._entryRateEMA = rawRate;
+  dataState._entryRateEMA = dataState._entryRateEMA * 0.75 + rawRate * 0.25;
+  dataState.entryRate = Math.round(dataState._entryRateEMA);
+  dataState.entryRate = Math.max(10, Math.min(250, dataState.entryRate));
   dataState.totalToday += Math.max(0, Math.round((totalAfter - totalBefore) * 0.6 + 25));
 }
 
@@ -2468,13 +2616,12 @@ window.closeDetail = closeDetail;
 window.openDetail = openDetail;
 window.buildingDefs = buildingDefs;
 
-// ── 监控大屏（Three.js 3D视角）──
+// ── 监控大屏（Canvas 2D 实时渲染）──
 function openMonitorScreen(cameraName) {
   const bldName = cameraBuildingMap[cameraName] || cameraName;
   const bld = buildingDefs.find(b => b.label === bldName);
-  if (!bld || !bld._group) return;
+  if (!bld) return;
 
-  // 先关闭旧的大屏
   closeMonitor();
 
   const modal = document.getElementById('monitor-modal');
@@ -2484,239 +2631,595 @@ function openMonitorScreen(cameraName) {
   const container = document.getElementById('monitor-canvas');
   container.innerHTML = '';
 
-  // ── 独立 Three.js 场景 ──
-  const mScene = new THREE.Scene();
-  mScene.background = new THREE.Color(0x030d1f);
-  mScene.fog = new THREE.Fog(0x030d1f, 6, 22);
+  const canvas = document.createElement('canvas');
+  canvas.width = 960; canvas.height = 480;
+  canvas.style.display = 'block'; canvas.style.width = '100%'; canvas.style.height = '100%';
+  container.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
 
-  const mCamera = new THREE.PerspectiveCamera(45, 960 / 480, 0.5, 50);
-  mCamera.position.set(bld.width * 1.6, bld.height * 0.55, bld.width * 1.6);
-  mCamera.lookAt(0, bld.height * 0.3, 0);
-
-  const mRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  mRenderer.setSize(960, 480);
-  mRenderer.setPixelRatio(1);
-  mRenderer.shadowMap.enabled = true;
-  container.appendChild(mRenderer.domElement);
-
-  // 灯光
-  mScene.add(new THREE.AmbientLight(0x334466, 1.0));
-  const dirLight = new THREE.DirectionalLight(0xaaccff, 1.2);
-  dirLight.position.set(3, 8, 2);
-  mScene.add(dirLight);
-  const hemiLight = new THREE.HemisphereLight(0x8899cc, 0x223344, 0.6);
-  mScene.add(hemiLight);
-
-  // 克隆建筑 3D 模型
-  const bldClone = bld._group.clone(true);
-  bldClone.position.set(0, 0, 0);
-  mScene.add(bldClone);
-
-  // 地面
-  const groundGeo = new THREE.PlaneGeometry(18, 18);
-  const groundMat = new THREE.MeshBasicMaterial({ color: 0x1a2a3a, side: THREE.DoubleSide, depthWrite: false });
-  const ground = new THREE.Mesh(groundGeo, groundMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = -0.05;
-  mScene.add(ground);
-
-  // 雪粒子
-  const snowGeo = new THREE.BufferGeometry();
-  const snowPos = new Float32Array(200 * 3);
-  for (let i = 0; i < 200; i++) {
-    snowPos[i * 3] = (Math.random() - 0.5) * 16;
-    snowPos[i * 3 + 1] = Math.random() * 10;
-    snowPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
+  // roundRect polyfill (matches native: does NOT call beginPath)
+  if (!ctx.roundRect) {
+    ctx.roundRect = function(x, y, w, h, r) {
+      if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+      this.moveTo(x + r.tl, y);
+      this.lineTo(x + w - r.tr, y);
+      this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+      this.lineTo(x + w, y + h - r.br);
+      this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+      this.lineTo(x + r.bl, y + h);
+      this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+      this.lineTo(x, y + r.tl);
+      this.quadraticCurveTo(x, y, x + r.tl, y);
+      this.closePath();
+    };
   }
-  snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
-  const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6, depthWrite: false });
-  const snow = new THREE.Points(snowGeo, snowMat);
-  mScene.add(snow);
 
-  // ── 人员粒子系统 ──
+  const W = 960, H = 480;
+  // 建筑位置（画面中下偏左，给右侧留信息区）
+  const bldCX = W * 0.32, bldCY = H * 0.52;
+  const bw = Math.max(55, bld.width * 18), bh = Math.max(40, bld.height * 12);
+  // 透视深度
+  const depth = bw * 0.45;
+
   const people = [];
-  const personGeo = new THREE.CapsuleGeometry(0.1, 0.25, 4, 8);
-  let displayedCount = bld.density;
-  const edgeDist = 5; // 边缘距离
-
-  // 存储数据
-  modal._mData = { mScene, mCamera, mRenderer, bldClone, people, displayedCount, bld, personGeo, snow };
-
+  let _prevDensity = bld.density;
+  let _spawnDebt = 0;  // 累积待生成的人数（避免整数截断丢失）
   let lastTime = performance.now();
-  function monitorLoop() {
-    if (!modal.classList.contains('show')) { cleanupMonitor(); return; }
-    requestAnimationFrame(monitorLoop);
+  let _rafId;
+  let frameN = 0;
+  // 入口位置（建筑正前方偏下，模拟大门）
+  const entranceX = bldCX + depth * 0.08, entranceY = bldCY + bh * 0.15;
 
+  // 窗户闪烁状态（持久化）
+  const windowStates = [];
+  const wCols = Math.max(3, Math.floor(bw / 8)), wRows = Math.max(3, Math.floor(bh / 10));
+  for (let r = 0; r < wRows; r++) {
+    windowStates[r] = [];
+    for (let c = 0; c < wCols; c++) {
+      windowStates[r][c] = {
+        lit: Math.random() > 0.25,
+        baseLit: Math.random() > 0.25,
+        flickerPhase: Math.random() * Math.PI * 2,
+        flickerSpeed: 0.5 + Math.random() * 2.5,
+      };
+    }
+  }
+
+  modal._mData = { canvas, ctx, bld, people, W, H, bldCX, bldCY, bw, bh, depth, windowStates, wCols, wRows, frameN };
+
+  // ═══════════════════════════════════
+  // 绘制静态背景（星空 + 极光）
+  // ═══════════════════════════════════
+  function drawNightSky() {
+    // 夜空渐变
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.7);
+    skyGrad.addColorStop(0, '#010914'); skyGrad.addColorStop(0.35, '#02122a'); skyGrad.addColorStop(0.7, '#0a1f3f'); skyGrad.addColorStop(1, '#132d55');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H * 0.72);
+
+    // 极光带（半透明绿紫色光晕）
+    const now = performance.now() * 0.001;
+    ctx.save();
+    for (let band = 0; band < 3; band++) {
+      const baseY = H * (0.08 + band * 0.13);
+      const grd = ctx.createLinearGradient(0, baseY - 30, 0, baseY + 40);
+      const alpha = 0.04 + band * 0.02;
+      grd.addColorStop(0, 'rgba(30,200,150,0)');
+      grd.addColorStop(0.25, `rgba(40,220,160,${alpha})`);
+      grd.addColorStop(0.5, `rgba(80,180,220,${alpha + 0.03})`);
+      grd.addColorStop(0.75, `rgba(30,200,160,${alpha})`);
+      grd.addColorStop(1, 'rgba(20,100,120,0)');
+      ctx.fillStyle = grd;
+      // 波浪形极光
+      ctx.beginPath();
+      ctx.moveTo(0, baseY + 40);
+      for (let x = 0; x <= W; x += 20) {
+        const yOff = Math.sin(x * 0.008 + now * 0.3 + band * 1.7) * 18 + Math.sin(x * 0.015 + now * 0.5) * 12;
+        ctx.lineTo(x, baseY + yOff);
+      }
+      ctx.lineTo(W, baseY + 50); ctx.lineTo(0, baseY + 50); ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 星空（闪烁）
+    if (!modal._mData._stars) {
+      modal._mData._stars = [];
+      for (let i = 0; i < 80; i++) {
+        modal._mData._stars.push({
+          x: Math.random() * W, y: Math.random() * H * 0.55,
+          r: 0.3 + Math.random() * 0.9,
+          alpha: 0.3 + Math.random() * 0.7,
+          twinkleSpeed: 1 + Math.random() * 3,
+          twinklePhase: Math.random() * Math.PI * 2,
+        });
+      }
+    }
+    modal._mData._stars.forEach(s => {
+      const a = s.alpha * (0.5 + 0.5 * Math.sin(now * s.twinkleSpeed + s.twinklePhase));
+      ctx.fillStyle = `rgba(220,235,255,${a.toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // 月亮
+    const moonX = W * 0.78, moonY = H * 0.12;
+    const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 50);
+    moonGlow.addColorStop(0, 'rgba(220,235,255,0.25)');
+    moonGlow.addColorStop(0.5, 'rgba(180,200,240,0.08)');
+    moonGlow.addColorStop(1, 'rgba(100,140,200,0)');
+    ctx.fillStyle = moonGlow;
+    ctx.beginPath(); ctx.arc(moonX, moonY, 50, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(230,240,255,0.9)';
+    ctx.beginPath(); ctx.arc(moonX, moonY, 14, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#010914';
+    ctx.beginPath(); ctx.arc(moonX + 3, moonY - 3, 11, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ═══════════════════════════════════
+  // 绘制 3D 透视建筑
+  // ═══════════════════════════════════
+  function drawBuilding3D() {
+    const now = performance.now() * 0.001;
+    const d = modal._mData;
+    const cx = bldCX, cy = bldCY;
+    const roofH = bh * 0.2;
+
+    // ── 地面 ──
+    // 远处地面
+    const farGnd = ctx.createLinearGradient(0, cy + bh * 0.3, 0, H);
+    farGnd.addColorStop(0, '#5a7a95');
+    farGnd.addColorStop(0.25, '#8aa8c0');
+    farGnd.addColorStop(0.6, '#b0c8d8');
+    farGnd.addColorStop(1, '#d4e0ec');
+    ctx.fillStyle = farGnd;
+    ctx.fillRect(0, cy + bh * 0.3, W, H - cy - bh * 0.3);
+
+    // 建筑阴影（投影在雪地上）
+    ctx.fillStyle = 'rgba(20,40,60,0.2)';
+    ctx.beginPath();
+    ctx.moveTo(cx - bw * 0.7, cy + bh * 0.3);
+    ctx.lineTo(cx + bw * 0.5 + depth * 0.6, cy + bh * 0.32);
+    ctx.lineTo(cx + bw * 0.7 + depth * 0.5, cy + bh * 0.28);
+    ctx.lineTo(cx - bw * 0.5, cy + bh * 0.26);
+    ctx.closePath(); ctx.fill();
+
+    // 入口通道（雪地上的路径痕迹）
+    const entX = cx + depth * 0.08, entY = cy + bh * 0.15;
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    for (let p = 0; p < 5; p++) {
+      const ang = Math.PI * 0.35 + p * Math.PI * 0.08;
+      const pathLen = bw * 2.0 + p * bw * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(entX + (p - 2) * bw * 0.12, entY);
+      ctx.lineTo(cx + Math.cos(ang) * pathLen, cy + Math.sin(ang) * pathLen * 0.4);
+      ctx.strokeStyle = '#c8ddf0';
+      ctx.lineWidth = 7 + p * 2;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // ── 建筑主体 ──
+    // 正面（冰蓝色半透明）
+    const frontGrad = ctx.createLinearGradient(cx - bw, 0, cx + bw, 0);
+    frontGrad.addColorStop(0, 'rgba(80,155,210,0.5)');
+    frontGrad.addColorStop(0.3, 'rgba(140,200,240,0.65)');
+    frontGrad.addColorStop(0.7, 'rgba(160,215,245,0.6)');
+    frontGrad.addColorStop(1, 'rgba(100,170,220,0.45)');
+    ctx.fillStyle = frontGrad;
+
+    // 绘制正面（梯形→矩形，模拟微微仰视）
+    const frontTopW = bw * 1.7, frontBotW = bw * 1.8;
+    ctx.beginPath();
+    ctx.moveTo(cx - frontTopW, cy - bh);
+    ctx.lineTo(cx + frontTopW, cy - bh);
+    ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
+    ctx.lineTo(cx - frontBotW + depth * 0.15, cy + bh * 0.28);
+    ctx.closePath(); ctx.fill();
+
+    // 右侧面（透视侧墙，较暗）
+    const sideGrad = ctx.createLinearGradient(cx + frontTopW, 0, cx + frontTopW + depth, 0);
+    sideGrad.addColorStop(0, 'rgba(70,130,180,0.35)');
+    sideGrad.addColorStop(1, 'rgba(40,90,140,0.2)');
+    ctx.fillStyle = sideGrad;
+    ctx.beginPath();
+    ctx.moveTo(cx + frontTopW, cy - bh);
+    ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
+    ctx.lineTo(cx + frontBotW + depth, cy + bh * 0.28 - depth * 0.2);
+    ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
+    ctx.closePath(); ctx.fill();
+
+    // 建筑棱线（冰晶辉光）
+    ctx.strokeStyle = 'rgba(180,225,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - frontTopW, cy - bh); ctx.lineTo(cx - frontBotW + depth * 0.15, cy + bh * 0.28);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + frontTopW, cy - bh); ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + frontTopW, cy - bh); ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
+    ctx.stroke();
+
+    // ── 屋顶 ──
+    const roofGrad = ctx.createLinearGradient(cx - bw * 0.6, cy - bh - roofH, cx + bw * 0.6 + depth, cy - bh);
+    roofGrad.addColorStop(0, 'rgba(120,200,240,0.55)');
+    roofGrad.addColorStop(0.5, 'rgba(180,225,250,0.7)');
+    roofGrad.addColorStop(1, 'rgba(100,180,225,0.45)');
+    ctx.fillStyle = roofGrad;
+    const roofTop = cy - bh - roofH;
+    ctx.beginPath();
+    ctx.moveTo(cx - frontTopW * 0.75, roofTop);
+    ctx.lineTo(cx + frontTopW * 0.7, roofTop);
+    ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
+    ctx.lineTo(cx + frontTopW, cy - bh);
+    ctx.lineTo(cx - frontTopW, cy - bh);
+    ctx.closePath(); ctx.fill();
+
+    // 屋顶积雪
+    ctx.fillStyle = 'rgba(220,235,250,0.65)';
+    ctx.beginPath();
+    ctx.moveTo(cx - frontTopW * 0.7, roofTop);
+    ctx.lineTo(cx + frontTopW * 0.65, roofTop);
+    ctx.lineTo(cx + frontTopW * 0.75 + depth * 0.1, roofTop + 4);
+    ctx.lineTo(cx - frontTopW * 0.65 + depth * 0.1, roofTop + 4);
+    ctx.closePath(); ctx.fill();
+    // 屋顶积雪辉光
+    ctx.strokeStyle = 'rgba(220,240,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // ── 窗户网格（含闪烁动画）──
+    for (let r = 0; r < wRows; r++) {
+      for (let c = 0; c < wCols; c++) {
+        const ws = windowStates[r][c];
+        // 闪烁
+        const flicker = Math.sin(now * ws.flickerSpeed + ws.flickerPhase) * 0.5 + 0.5;
+        const lit = ws.baseLit && flicker > 0.25;
+
+        const wx = cx - bw * 0.65 + c * (bw * 1.35 / wCols);
+        const wy = cy - bh * 0.82 + r * (bh * 0.75 / wRows);
+        const ww = bw * 1.2 / wCols, wh = bh * 0.5 / wRows;
+
+        // 窗格辉光
+        if (lit) {
+          const glowGrad = ctx.createRadialGradient(wx + ww / 2, wy + wh / 2, 0, wx + ww / 2, wy + wh / 2, ww * 0.8);
+          glowGrad.addColorStop(0, 'rgba(255,235,180,0.4)');
+          glowGrad.addColorStop(1, 'rgba(255,200,120,0)');
+          ctx.fillStyle = glowGrad;
+          ctx.fillRect(wx - 1, wy - 1, ww + 2, wh + 2);
+        }
+        ctx.fillStyle = lit ? 'rgba(255,235,180,0.7)' : 'rgba(30,45,80,0.5)';
+        ctx.fillRect(wx, wy, ww - 1.2, wh - 1.2);
+        if (lit) {
+          ctx.strokeStyle = 'rgba(255,240,200,0.3)';
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(wx, wy, ww - 1.2, wh - 1.2);
+        }
+      }
+    }
+
+    // ── 入门（正面底部拱门）──
+    const doorW = bw * 0.22, doorH = bh * 0.2;
+    const doorX = cx - doorW / 2 + depth * 0.08, doorY = cy + bh * 0.08;
+    const doorGrad = ctx.createLinearGradient(doorX, 0, doorX + doorW, 0);
+    doorGrad.addColorStop(0, 'rgba(20,40,70,0.6)');
+    doorGrad.addColorStop(0.5, 'rgba(255,220,150,0.25)');
+    doorGrad.addColorStop(1, 'rgba(20,40,70,0.6)');
+    ctx.fillStyle = doorGrad;
+    ctx.beginPath();
+    ctx.arc(doorX + doorW / 2, doorY, doorW / 2, Math.PI, 0);
+    ctx.lineTo(doorX + doorW, doorY + doorH * 0.6);
+    ctx.lineTo(doorX, doorY + doorH * 0.6);
+    ctx.closePath(); ctx.fill();
+
+    // ── 冰晶特效（建筑边缘发光）──
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const edgeGlowGrad = ctx.createLinearGradient(cx - bw * 1.1, 0, cx - bw * 0.5, 0);
+    edgeGlowGrad.addColorStop(0, 'rgba(100,200,255,0)');
+    edgeGlowGrad.addColorStop(0.5, 'rgba(150,220,255,0.12)');
+    edgeGlowGrad.addColorStop(1, 'rgba(100,200,255,0)');
+    ctx.fillStyle = edgeGlowGrad;
+    ctx.fillRect(cx - bw * 1.1, cy - bh - roofH, bw * 0.6, bh + roofH + 10);
+    ctx.restore();
+
+    // 标签
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = 'bold 14px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏛 ' + bld.label, cx + depth * 0.15, cy - bh - roofH - 12);
+    ctx.textAlign = 'start';
+  }
+
+  // ═══════════════════════════════════
+  // 每帧渲染
+  // ═══════════════════════════════════
+  function renderFrame() {
     const now = performance.now();
     const delta = Math.min(0.1, (now - lastTime) / 1000);
     lastTime = now;
+    frameN++;
+
     const d = modal._mData;
     if (!d) return;
 
-    const targetDensity = d.bld.density;
-    const diff = targetDensity - d.displayedCount;
+    // 夜空 + 极光 + 星空 + 月亮
+    drawNightSky();
 
-    // ── 入场：在边缘生成红色小人，走向建筑 ──
-    if (diff > 0 && d.people.length < 150) {
-      const spawnCount = Math.min(Math.ceil(diff * 0.15), 3);
-      for (let s = 0; s < spawnCount; s++) {
-        const angle = Math.random() * Math.PI * 2;
-        const px = Math.cos(angle) * edgeDist;
-        const pz = Math.sin(angle) * edgeDist;
-        const personMat = new THREE.MeshBasicMaterial({ color: 0xff3333 }); // 红色=入口
-        const person = new THREE.Mesh(personGeo, personMat);
-        person.position.set(px, 0.35, pz);
-        person.userData = {
-          phase: 'entering',
-          startX: px, startZ: pz,
-          targetX: (Math.random() - 0.5) * bld.width * 0.5,
-          targetZ: (Math.random() - 0.5) * bld.depth * 0.5,
-          progress: 0, speed: 1.2 + Math.random() * 1.8,
-          wanderAngle: Math.random() * Math.PI * 2,
-          wanderTimer: 0
-        };
-        d.mScene.add(person);
-        d.people.push(person);
-        d.displayedCount++;
+    // 建筑
+    drawBuilding3D();
+
+    // ── 雪粒子 ──
+    if (!d._snowFlakes) {
+      d._snowFlakes = [];
+      for (let i = 0; i < 100; i++) {
+        d._snowFlakes.push({
+          x: Math.random() * W, y: Math.random() * H,
+          r: 0.3 + Math.random() * 1.2,
+          vy: 6 + Math.random() * 20, vx: (Math.random() - 0.5) * 8,
+          wobbleAmp: 0.3 + Math.random() * 1.5, wobbleSpeed: 1 + Math.random() * 2,
+          alpha: 0.3 + Math.random() * 0.5,
+        });
+      }
+    }
+    d._snowFlakes.forEach(f => {
+      f.y += f.vy * delta;
+      f.x += f.vx * delta + Math.sin(now * 0.003 * f.wobbleSpeed) * f.wobbleAmp;
+      if (f.y > H + 10) { f.y = -10; f.x = Math.random() * W; }
+      if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10;
+      // 雪花辉光
+      const glowGrad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 2);
+      glowGrad.addColorStop(0, `rgba(220,235,255,${f.alpha})`);
+      glowGrad.addColorStop(1, 'rgba(180,210,240,0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = `rgba(240,245,255,${f.alpha + 0.15})`;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+    });
+
+    // ── 人员系统（数据驱动：密度变化 → 进出动画）──
+    const curDensity = d.bld.density;
+    const densityDelta = curDensity - _prevDensity;
+    const edgeDist = Math.min(bw * 1.4, 200);
+    const peoplePerUnit = 0.38; // 每个人物粒子代表多少人
+
+    // 密度增加 → 生成进场人物（红色，从边缘走向建筑）
+    if (densityDelta > 0.5 && d.people.length < 120) {
+      _spawnDebt += densityDelta * peoplePerUnit;
+      const toSpawn = Math.min(Math.floor(_spawnDebt), 4);
+      _spawnDebt -= toSpawn;
+      for (let s = 0; s < toSpawn; s++) {
+        const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15; // 前方扇形
+        const startDist = edgeDist + Math.random() * 60;
+        d.people.push({
+          x: bldCX + Math.cos(angle) * startDist,
+          y: bldCY + Math.sin(angle) * startDist * 0.4,
+          tx: entranceX + (Math.random() - 0.5) * bw * 0.4,
+          ty: entranceY + Math.random() * bh * 0.08,
+          phase: 'enter', speed: 55 + Math.random() * 75, idleTimer: 0,
+        });
       }
     }
 
-    // ── 离场：已有建筑旁的人走向边缘 → 红色 → 删除 ──
-    if (diff < 0) {
-      const despawnCount = Math.min(Math.ceil(Math.abs(diff) * 0.15), 3);
-      for (let s = 0; s < despawnCount; s++) {
-        // 找一个在建筑附近的空闲人员（非entering, 非exiting）
-        const candidates = d.people.filter(p => p.userData.phase === 'idle');
-        if (candidates.length > 0) {
-          const p = candidates[Math.floor(Math.random() * candidates.length)];
-          const angle = Math.random() * Math.PI * 2;
-          p.userData.phase = 'exiting';
-          p.userData.targetX = Math.cos(angle) * (edgeDist + 1);
-          p.userData.targetZ = Math.sin(angle) * (edgeDist + 1);
-          p.userData.progress = 0;
-          p.userData.speed = 1.2 + Math.random() * 1.8;
-          p.userData.exitStartX = p.position.x;
-          p.userData.exitStartZ = p.position.z;
-          p.material = new THREE.MeshBasicMaterial({ color: 0xff6633 }); // 开始变红
-        }
+    // 密度减少 → 转换空闲人物为出场（红色，从建筑走向边缘）
+    if (densityDelta < -0.5 && d.people.length > 0) {
+      let exitCount = Math.min(Math.round(-densityDelta * peoplePerUnit), 4);
+      for (let s = 0; s < exitCount; s++) {
+        const idx = d.people.findIndex(p => p.phase === 'idle');
+        if (idx < 0) break;
+        const angle = Math.random() * Math.PI * 0.7 + Math.PI * 0.15;
+        const exitDist = edgeDist + 30 + Math.random() * 50;
+        d.people[idx].phase = 'exit';
+        d.people[idx].tx = bldCX + Math.cos(angle) * exitDist;
+        d.people[idx].ty = bldCY + Math.sin(angle) * exitDist * 0.4;
+        d.people[idx].speed = 65 + Math.random() * 85;
       }
     }
+    _prevDensity = curDensity;
 
-    // ── 动画所有人 ──
+    // 绘制人物（小人形状：头+身体+方向指示）
+    function drawPerson(x, y, r, g, b, a, isRed) {
+      // 身体光晕（红色人物光晕更强）
+      const glowR = isRed ? 3.5 : 3;
+      const glowA = isRed ? 0.55 : 0.45;
+      const glow = ctx.createRadialGradient(x, y + 2, 0, x, y + 2, glowR * 1.5);
+      glow.addColorStop(0, `rgba(${r},${g},${b},${glowA})`);
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(x, y + 2, glowR * 1.5, 0, Math.PI * 2); ctx.fill();
+      // 身体
+      ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+      ctx.beginPath();
+      ctx.roundRect(x - 2, y, 4, 3.8, 1.4);
+      ctx.fill();
+      // 头
+      ctx.beginPath(); ctx.arc(x, y - 2.2, 2, 0, Math.PI * 2); ctx.fill();
+      // 高光
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      ctx.beginPath(); ctx.arc(x - 0.5, y - 2.7, 0.7, 0, Math.PI * 2); ctx.fill();
+    }
+
     for (let i = d.people.length - 1; i >= 0; i--) {
       const p = d.people[i];
-      const ud = p.userData;
+      const dx = p.tx - p.x, dy = p.ty - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const vx = dist > 0.5 ? (dx / dist) * p.speed * delta : 0;
+      const vy = dist > 0.5 ? (dy / dist) * p.speed * delta : 0;
 
-      if (ud.phase === 'entering') {
-        // 从边缘向建筑移动
-        const tx = ud.targetX, tz = ud.targetZ;
-        const dx = tx - p.position.x, dz = tz - p.position.z;
-        const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist < 0.25) {
-          ud.phase = 'idle';
-          p.material = new THREE.MeshBasicMaterial({ color: 0x88ccff }); // 蓝色=已入场
-          ud.wanderTimer = Math.random() * 2;
-        } else {
-          p.position.x += (dx / dist) * ud.speed * delta;
-          p.position.z += (dz / dist) * ud.speed * delta;
-          // 从红色渐变到蓝色
-          const edgeDistNow = Math.sqrt(p.position.x * p.position.x + p.position.z * p.position.z);
-          const t = Math.min(1, 1 - edgeDistNow / edgeDist);
-          const r = 1 - t * 0.6, g = 0.2 + t * 0.6, b = 0.2 + t * 0.8;
-          p.material.color.setRGB(r, g, b);
+      if (p.phase === 'enter') {
+        // 🔴 进场：从边缘走向建筑门口（亮红色 → 渐近变粉）
+        if (dist < 5) { p.phase = 'idle'; p.idleTimer = 55 + Math.random() * 110; }
+        else { p.x += vx; p.y += vy; }
+        const eDist = Math.hypot(p.x - entranceX, p.y - entranceY);
+        const t = Math.min(1, 1 - eDist / Math.max(1, edgeDist));
+        // 红→粉渐变：远红(255,50,30) → 近粉(255,140,130)
+        drawPerson(p.x, p.y, 255, Math.round(50 + t * 90), Math.round(30 + t * 100), 0.9, true);
+      } else if (p.phase === 'exit') {
+        // 🔴 出场：从建筑走向边缘（亮红色，越远越红）
+        if (dist < 6 || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) {
+          d.people.splice(i, 1); continue;
         }
-      } else if (ud.phase === 'exiting') {
-        // 从建筑向边缘移动
-        const tx = ud.targetX, tz = ud.targetZ;
-        const dx = tx - p.position.x, dz = tz - p.position.z;
-        const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist < 0.3 || Math.abs(p.position.x) > edgeDist || Math.abs(p.position.z) > edgeDist) {
-          // 到达边缘，删除
-          d.mScene.remove(p);
-          d.people.splice(i, 1);
-          d.displayedCount--;
-          continue;
-        }
-        p.position.x += (dx / dist) * ud.speed * delta;
-        p.position.z += (dz / dist) * ud.speed * delta;
-        // 逐渐变红
-        const edgeDistNow = Math.sqrt(p.position.x * p.position.x + p.position.z * p.position.z);
-        const t = Math.min(1, edgeDistNow / edgeDist);
-        p.material.color.setRGB(0.5 + t * 0.5, 0.5 - t * 0.3, 1 - t * 0.7);
+        p.x += vx; p.y += vy;
+        const eDist = Math.hypot(p.x - bldCX, p.y - bldCY);
+        const t = Math.min(1, eDist / Math.max(1, edgeDist));
+        // 粉→红渐变：近粉(255,120,100) → 远红(255,40,20)
+        drawPerson(p.x, p.y, 255, Math.round(120 - t * 80), Math.round(100 - t * 80), 0.88, true);
       } else {
-        // idle：在建筑周围漫步
-        ud.wanderTimer -= delta;
-        if (ud.wanderTimer <= 0) {
-          ud.wanderAngle = Math.random() * Math.PI * 2;
-          ud.wanderTimer = 1.5 + Math.random() * 3;
-          ud.targetX = (Math.random() - 0.5) * bld.width * 0.7;
-          ud.targetZ = (Math.random() - 0.5) * bld.depth * 0.7;
-          ud.speed = 0.2 + Math.random() * 0.6;
+        // 🔵 场内：冰蓝色，在建筑门口附近自然走动
+        p.idleTimer--;
+        if (p.idleTimer <= 0) {
+          // 在门口附近随机漫步
+          p.tx = entranceX + (Math.random() - 0.5) * bw * 0.55;
+          p.ty = entranceY + (Math.random() - 0.5) * bh * 0.15;
+          p.idleTimer = 35 + Math.random() * 90;
         }
-        const dx = ud.targetX - p.position.x;
-        const dz = ud.targetZ - p.position.z;
-        const dist = Math.sqrt(dx * dx + dz * dz);
-        if (dist > 0.1) {
-          p.position.x += (dx / dist) * ud.speed * delta;
-          p.position.z += (dz / dist) * ud.speed * delta;
-        }
+        if (dist > 1.5) { p.x += vx * 0.45; p.y += vy * 0.45; }
+        // 冰蓝+微呼吸效果
+        const breathe = 0.7 + Math.sin(frameN * 0.05 + i) * 0.08;
+        drawPerson(p.x, p.y, 120, 195, 240, breathe, false);
       }
-      p.position.y = 0.35 + Math.sin(now * 0.005 + i * 1.7) * 0.03;
     }
 
-    // 建筑缓慢旋转
-    bldClone.rotation.y += delta * 0.2;
-
-    // 雪向下飘
-    const sPos = snow.geometry.attributes.position.array;
-    for (let i = 0; i < 200; i++) {
-      sPos[i * 3 + 1] -= delta * 0.4;
-      if (sPos[i * 3 + 1] < 0) { sPos[i * 3 + 1] = 10; sPos[i * 3] = (Math.random() - 0.5) * 16; sPos[i * 3 + 2] = (Math.random() - 0.5) * 16; }
-      sPos[i * 3] += Math.sin(now * 2 + i) * delta * 0.15;
+    // ── 入口路径指示（雪地上的足迹方向）──
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.setLineDash([3, 12]);
+    ctx.strokeStyle = '#a0d0f0';
+    ctx.lineWidth = 1.2;
+    for (let a = 0; a < 3; a++) {
+      const ang = Math.PI * 0.35 + a * Math.PI * 0.15;
+      ctx.beginPath();
+      ctx.moveTo(entranceX, entranceY);
+      ctx.lineTo(bldCX + Math.cos(ang) * edgeDist, bldCY + Math.sin(ang) * edgeDist * 0.4);
+      ctx.stroke();
     }
-    snow.geometry.attributes.position.needsUpdate = true;
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.restore();
 
-    mRenderer.render(mScene, mCamera);
+    // ── 进出统计标签 ──
+    if (densityDelta > 1) {
+      ctx.fillStyle = 'rgba(255,70,50,0.75)';
+      ctx.font = 'bold 11px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('↑ +' + Math.round(densityDelta) + ' 人进场', entranceX, entranceY - 18);
+    } else if (densityDelta < -1) {
+      ctx.fillStyle = 'rgba(255,100,70,0.75)';
+      ctx.font = 'bold 11px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('↓ ' + Math.round(densityDelta) + ' 人离场', entranceX, entranceY - 18);
+    }
+    ctx.textAlign = 'start';
+
+    // ── 右侧信息面板 ──
+    const panelX = W * 0.62, panelY = H * 0.15;
+    // 半透明背景面板
+    ctx.fillStyle = 'rgba(5,15,30,0.7)';
+    ctx.strokeStyle = 'rgba(60,150,220,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(panelX, panelY, W * 0.35, H * 0.6, 8);
+    ctx.fill(); ctx.stroke();
+
+    // 标题
+    ctx.fillStyle = 'rgba(180,220,255,0.9)';
+    ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📊 实时数据', panelX + W * 0.175, panelY + 22);
+    ctx.textAlign = 'start';
+
+    // 分隔线
+    ctx.strokeStyle = 'rgba(60,150,220,0.2)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(panelX + 15, panelY + 32); ctx.lineTo(panelX + W * 0.35 - 15, panelY + 32);
+    ctx.stroke();
+
+    const lineH = 28, startY = panelY + 48;
+    const lines = [
+      { label: '👥 当前人数', value: d.bld.density.toLocaleString() + ' 人', color: '#e0f0ff' },
+      { label: '📐 容量比率', value: Math.round(d.bld.density / Math.max(1, bld.width * bld.depth * 12) * 100) + '%',
+        color: d.bld.density / Math.max(1, bld.width * bld.depth * 12) > 0.85 ? '#ef4444' : d.bld.density / Math.max(1, bld.width * bld.depth * 12) > 0.6 ? '#f59e0b' : '#22c55e' },
+      { label: '🕐 排队预估', value: Math.round(d.bld.density / Math.max(1, bld.width * bld.depth * 12) * 45) + ' 分钟', color: '#b0d0f0' },
+      { label: '🏛 建筑类型', value: ({ tower:'塔楼', palace:'宫殿', slide:'冰滑梯', dome:'穹顶', gate:'大门', pagoda:'宝塔', sculptures:'冰雕' }[bld.type] || bld.type), color: '#8ab8d8' },
+      { label: '📏 建筑尺寸', value: bld.width + '×' + bld.depth + '×' + bld.height + 'm', color: '#8ab8d8' },
+      { label: '📍 摄像头', value: cameraName, color: '#8ab8d8' },
+    ];
+    lines.forEach((l, i) => {
+      const ly = startY + i * lineH;
+      ctx.fillStyle = 'rgba(150,190,220,0.7)';
+      ctx.font = '11px "Microsoft YaHei", sans-serif';
+      ctx.fillText(l.label, panelX + 14, ly);
+      ctx.fillStyle = l.color;
+      ctx.font = 'bold 12px "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(l.value, panelX + W * 0.35 - 14, ly);
+      ctx.textAlign = 'start';
+    });
+
+    // 容量负载条
+    const barX = panelX + 14, barY = startY + lines.length * lineH + 8;
+    const barW = W * 0.35 - 28, barH = 8;
+    const ratio = d.bld.density / Math.max(1, bld.width * bld.depth * 12);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath(); ctx.roundRect(barX, barY, barW, barH, 4); ctx.fill();
+
+    const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+    barGrad.addColorStop(0, ratio > 0.85 ? '#ef4444' : '#38bdf8');
+    barGrad.addColorStop(0.6, ratio > 0.85 ? '#f59e0b' : '#22c55e');
+    barGrad.addColorStop(1, '#22c55e');
+    ctx.fillStyle = barGrad;
+    ctx.beginPath(); ctx.roundRect(barX, barY, Math.max(4, barW * Math.min(1, ratio)), barH, 4); ctx.fill();
+
+    ctx.fillStyle = 'rgba(200,220,240,0.8)';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('负载: ' + Math.round(ratio * 100) + '%', barX + barW / 2, barY - 4);
+    ctx.textAlign = 'start';
+
+    // 状态指示
+    let statusText, statusColor;
+    if (ratio > 0.85) { statusText = '⚠️ 接近饱和 — 建议限流'; statusColor = '#ef4444'; }
+    else if (ratio > 0.6) { statusText = '🟡 较为繁忙 — 关注排队'; statusColor = '#f59e0b'; }
+    else { statusText = '🟢 运营正常 — 体验舒适'; statusColor = '#22c55e'; }
+    ctx.fillStyle = statusColor;
+    ctx.font = 'bold 12px "Microsoft YaHei", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(statusText, panelX + W * 0.175, barY + barH + 18);
+    ctx.textAlign = 'start';
+
+    // 帧号（debug）
+    if (frameN % 60 === 0) {
+      d.frameN = frameN;
+    }
+  }
+
+  function monitorLoop() {
+    if (!modal.classList.contains('show')) { cleanupMonitor(); return; }
+    _rafId = requestAnimationFrame(monitorLoop);
+    modal._rafId = _rafId;
+    try { renderFrame(); } catch(e) { console.error('Monitor render error:', e); }
   }
 
   function cleanupMonitor() {
-    const md = modal._mData;
-    if (md) {
-      md.mRenderer.dispose();
-      if (md.mScene) {
-        md.mScene.traverse(obj => {
-          if (obj.geometry && obj.geometry !== personGeo) obj.geometry.dispose();
-          if (obj.material) {
-            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-            else obj.material.dispose();
-          }
-        });
-      }
-      modal._mData = null;
-    }
+    if (modal._rafId) { cancelAnimationFrame(modal._rafId); modal._rafId = null; }
+    modal._mData = null;
     container.innerHTML = '';
   }
 
-  requestAnimationFrame(monitorLoop);
+  _rafId = requestAnimationFrame(monitorLoop);
+  modal._rafId = _rafId;
 }
 
 function closeMonitor() {
   const modal = document.getElementById('monitor-modal');
   const container = document.getElementById('monitor-canvas');
-  const md = modal._mData;
-  if (md) {
-    md.mRenderer.dispose();
-    if (md.mScene) {
-      md.mScene.traverse(obj => {
-        if (obj.geometry && obj.geometry !== md.personGeo) obj.geometry.dispose();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-          else obj.material.dispose();
-        }
-      });
-    }
-    modal._mData = null;
-  }
+  if (modal._rafId) { cancelAnimationFrame(modal._rafId); modal._rafId = null; }
+  modal._mData = null;
   container.innerHTML = '';
   modal.classList.remove('show');
 }
@@ -2801,7 +3304,7 @@ function updateAIPrediction() {
     const pct = Math.round(d.value / d.capacity * 100);
     const barColor = pct > 90 ? '#ef4444' : pct > 75 ? '#f59e0b' : '#38bdf8';
     const warnStr = d.peak ? '⚠️周末' : (pct > 90 ? '⚠️超容' : '');
-    return `<div class="predict-day">
+    return `<div class="predict-day" onclick="clickPredictDay(${i})" style="cursor:pointer;" title="点击查看详情">
       <span class="pday">${dateStr}</span><span class="pday" style="font-size:9px;color:var(--text-muted)">${dayName}</span>
       <span class="pval">${d.value.toLocaleString()}人</span>
       <span class="ptrend ${trendClass}">${trendStr}</span>
@@ -2813,6 +3316,7 @@ function updateAIPrediction() {
 setInterval(refreshPredict, 300000); // 每5分钟刷新预测
 
 // ── AI语义分析 ──
+let reviewIdCounter = 1000;
 const reviewPool = [
   { user: '冰雪游客', text: '冰滑梯太刺激了！排队值得', sentiment: 'pos', category: '排队' },
   { user: '南方小土豆', text: '极光塔的景色很美，就是人有点多', sentiment: 'pos', category: '设施' },
@@ -2828,7 +3332,7 @@ const reviewPool = [
   { user: '背包客', text: '指示标识不太清楚，容易迷路', sentiment: 'neg', category: '设施' },
 ];
 
-let reviewQueue = [...reviewPool];
+let reviewQueue = [...reviewPool].map(r => ({ ...r, rid: reviewIdCounter++ }));
 let sentimentHistory = [];
 for (let i = 0; i < 20; i++) {
   sentimentHistory.push({ time: i, posRate: 0.65 + (Math.random() - 0.5) * 0.2 });
@@ -3289,47 +3793,64 @@ function findBuildingForCamera(camIdx) {
   return null;
 }
 
-// ── 评论系统重写 (新评论在顶部, 旧评论下移) ──
+// ── 评论系统 (增量更新：新评论滑入，旧评论下移) ──
 let lastReviewTime = Date.now();
-let reviewGenerationTimer = 0;
 
-function updateReviews() {
-  const feed = document.getElementById('review-feed');
-  if (!feed) return;
-
-  // 只显示最新8条
-  const displayReviews = reviewQueue.slice(0, 8);
-  feed.innerHTML = displayReviews.map((r, i) => {
-    const timeAgo = i === 0 ? '刚刚' : (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
-    const sentClass = r.sentiment === 'pos' ? 'pos' : 'neg';
-    const sentText = r.sentiment === 'pos' ? '😊' : '😞';
-    return `<div class="review-item" style="animation-delay:${i*0.05}s">
-      <span class="rev-user">${r.user}</span>
-      <span class="rev-text">${r.text}</span>
-      <span class="rev-sentiment ${sentClass}">${sentText}</span>
-      <span class="rev-time">${timeAgo}</span>
-    </div>`;
-  }).join('');
-
-  // 更新情感统计
-  const posCount = reviewQueue.filter(r => r.sentiment === 'pos').length;
-  const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
-  const total = posCount + negCount || 1;
-
-  updateSentimentDisplay(posCount, negCount, total);
+function renderSingleReview(r, i) {
+  const timeAgo = i === 0 ? '刚刚' : (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
+  const sentClass = r.sentiment === 'pos' ? 'pos' : 'neg';
+  const sentText = r.sentiment === 'pos' ? '😊' : '😞';
+  return `<div class="review-item" style="animation:slideDown 0.4s ease-out;cursor:pointer;" onclick="clickReviewItem('${r.rid}')" data-rid="${r.rid}" title="点击查看详情">
+    <span class="rev-user">${r.user}</span>
+    <span class="rev-text">${r.text}</span>
+    <span class="rev-sentiment ${sentClass}">${sentText}</span>
+    <span class="rev-time">${timeAgo}</span>
+  </div>`;
 }
 
-// 生成新评论 (插入到队列最前面)
+function updateReviews() {
+  // 全量渲染（初始化/tab切换时使用）
+  const feed = document.getElementById('review-feed');
+  if (!feed) return;
+  const displayReviews = reviewQueue.slice(0, 8);
+  feed.innerHTML = displayReviews.map((r, i) => renderSingleReview(r, i)).join('');
+  updateSentimentStats();
+}
+
+function prependReview(r) {
+  // 增量插入：新评论从顶部滑入
+  const feed = document.getElementById('review-feed');
+  if (!feed) return;
+  const div = document.createElement('div');
+  div.innerHTML = renderSingleReview(r, 0);
+  const newItem = div.firstElementChild;
+  feed.insertBefore(newItem, feed.firstChild);
+
+  // 更新已有评论的时间标签
+  const items = feed.querySelectorAll('.review-item');
+  for (let i = 1; i < items.length; i++) {
+    const timeEl = items[i].querySelector('.rev-time');
+    if (timeEl) timeEl.textContent = (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
+  }
+
+  // 超过8条则移除最底部
+  if (items.length > 8) {
+    const last = items[items.length - 1];
+    last.classList.add('removing');
+    setTimeout(() => { if (last.parentNode) last.remove(); }, 400);
+  }
+}
+
 function generateNewReview() {
   const tmpl = newReviewTemplates[Math.floor(Math.random() * newReviewTemplates.length)];
   const now = new Date();
   const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
 
-  // 微调文本
   const variations = ['', '!', '~', '！', '～'];
   const text = tmpl.text + variations[Math.floor(Math.random() * variations.length)];
 
   const newReview = {
+    rid: reviewIdCounter++,
     user: tmpl.user + Math.floor(Math.random() * 100),
     text: text,
     sentiment: tmpl.sentiment,
@@ -3337,31 +3858,31 @@ function generateNewReview() {
     time: timeStr,
   };
 
-  // 插入到最前面
   reviewQueue.unshift(newReview);
   if (reviewQueue.length > 50) reviewQueue.length = 50;
 
-  // 更新情感历史
   const posRate = reviewQueue.filter(r => r.sentiment === 'pos').length / reviewQueue.length;
   sentimentHistory.push({ time: sentimentHistory.length, posRate });
   if (sentimentHistory.length > 30) sentimentHistory.shift();
 
   lastReviewTime = Date.now();
-  updateReviews();
-  updateSemanticAnalysis();
+  prependReview(newReview);     // 增量插入，不刷新整个列表
+  updateSentimentStats();       // 只更新统计数字
 }
 
-function updateSentimentDisplay(posCount, negCount, total) {
+// ── 队列/密度一致性修复 (仅3D气泡+左侧列表) ──
+function updateSentimentStats() {
+  const posCount = reviewQueue.filter(r => r.sentiment === 'pos').length;
+  const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
+  const total = posCount + negCount || 1;
   const posPct = Math.round(posCount / total * 100);
   const negPct = 100 - posPct;
-
   const posBar = document.getElementById('sentiment-pos-bar');
   const negBar = document.getElementById('sentiment-neg-bar');
   if (posBar) { posBar.style.width = posPct + '%'; posBar.textContent = posPct + '% (' + posCount + '条)'; }
   if (negBar) { negBar.style.width = negPct + '%'; negBar.textContent = negPct + '% (' + negCount + '条)'; }
 }
 
-// ── 队列/密度一致性修复 (仅3D气泡+左侧列表) ──
 function getQueueFromDensity(building) {
   const capacity = building.width * building.depth * 12;
   const ratio = building.density / Math.max(1, capacity);
@@ -3370,12 +3891,15 @@ function getQueueFromDensity(building) {
 
 function updateBubblesWithQueue() {
   bubbles.forEach(bub => {
-    const ratio = bub.building.density / Math.max(1, bub.building.width * bub.building.depth * 12);
+    // 从buildingDefs读取实时密度（而非buildings数组的过期副本）
+    const def = buildingDefs.find(d => d.label === bub.building.label);
+    const density = def ? def.density : bub.building.density;
+    const ratio = density / Math.max(1, bub.building.width * bub.building.depth * 12);
     const qMins = Math.round(ratio * 45);
     let qColor = 'var(--text-secondary)';
     if (ratio > 0.85) qColor = '#ef4444';
     else if (ratio > 0.6) qColor = '#f59e0b';
-    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人 <span style="font-size:9px;color:${qColor}">🕐${qMins}min</span></span>`;
+    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(density)}</span><span class="unit">人 <span style="font-size:9px;color:${qColor}">🕐${qMins}min</span></span>`;
   });
 }
 
@@ -3537,7 +4061,7 @@ function updateAgencyList() {
     teams: Math.max(1, a.teams + Math.floor((Math.random() - 0.5) * 2))
   }));
   container.innerHTML = data.map((a, i) => `
-    <div class="agency-row">
+    <div class="agency-row" onclick="clickAgencyRow(${i})" style="cursor:pointer;" title="点击查看详情">
       <span style="color:var(--text-muted);width:16px;">${i + 1}</span>
       <span class="agency-name" style="flex:1;">${a.name}</span>
       <span class="agency-info">${a.teams}团</span>
@@ -3611,21 +4135,6 @@ function periodicUpdate() {
     document.getElementById('current-visitors').textContent = total.toLocaleString();
   }
 }
-
-// ── 建筑点击 → 钻取详情 ──
-window.addEventListener('click', (e) => {
-  if (e.target.closest('#detail-modal') || e.target.closest('#solution-modal') || e.target.closest('#monitor-modal')) return;
-  const mx = (e.clientX / window.innerWidth) * 2 - 1;
-  const my = -(e.clientY / window.innerHeight) * 2 + 1;
-  const rc = new THREE.Raycaster();
-  rc.setFromCamera(new THREE.Vector2(mx, my), camera);
-  const hits = rc.intersectObjects(buildingGroups, true);
-  if (hits.length > 0) {
-    let o = hits[0].object;
-    while (o && !o.userData.building) o = o.parent;
-    if (o && o.userData.building) openDetail(o.userData.building, o);
-  }
-});
 
 // ── Start ──
 initCameras();
