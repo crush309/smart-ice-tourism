@@ -182,7 +182,7 @@ body {
   border: 1px solid rgba(56, 189, 248, 0.15);
   border-radius: 8px; overflow: hidden;
 }
-.camera-card canvas { width: 100%; height: 60px; display: block; }
+.camera-card canvas { width: 100%; height: auto; aspect-ratio: 256/120; display: block; }
 .camera-label {
   padding: 4px 6px; font-size: 10px; color: var(--text-secondary);
   display: flex; justify-content: space-between; align-items: center;
@@ -252,7 +252,7 @@ body {
 }
 
 /* Right panel wider */
-#right-panel { width: 280px; }
+#right-panel { width: 300px; }
 
 /* Scrollbar */
 .panel::-webkit-scrollbar { width: 4px; }
@@ -281,6 +281,21 @@ body {
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
+}
+
+/* 底部热力图图例 */
+#heatmap-bar {
+  position: fixed; bottom: 40px; left: 0; right: 0; z-index: 9;
+  height: 22px;
+  background: rgba(6,18,40,0.9);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(56,189,248,0.1);
+  font-size: 10px; color: var(--text-secondary);
+}
+#heatmap-bar .hm-gradient {
+  width: 120px; height: 8px; border-radius: 4px;
+  background: linear-gradient(to right, #22c55e, #84cc16, #eab308, #f97316, #ef4444);
 }
 
 /* Alert Panel */
@@ -334,6 +349,12 @@ body {
 .detail-kpi .kpi-label { font-size:10px; color:var(--text-muted); margin-top:2px; }
 .detail-kpi .kpi-hint { font-size:9px; color:var(--text-muted); opacity:0.7; }
 .detail-chart { width:100%; height:180px; margin-bottom:14px; }
+.ai-compare-table { width:100%; border-collapse:collapse; font-size:10px; }
+.ai-compare-table th { color:var(--text-muted); font-weight:500; padding:3px 6px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.08); }
+.ai-compare-table td { padding:3px 6px; color:var(--text-primary); font-weight:600; }
+.ai-compare-table .dev-ok { color:#22c55e; }
+.ai-compare-table .dev-warn { color:#f59e0b; }
+.ai-compare-table .dev-bad { color:#ef4444; }
 .detail-info { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px; color:var(--text-secondary); }
 .detail-info .info-row { display:flex; justify-content:space-between; padding:4px 8px; background:rgba(255,255,255,0.02); border-radius:4px; }
 .detail-info .info-label { color:var(--text-muted); }
@@ -346,8 +367,6 @@ body {
 .detail-btn.danger { border-color:rgba(239,68,68,0.4); color:var(--status-offline); }
 
 /* 业态营收Tab */
-#revenue-panel { display:none; }
-#revenue-panel.show { display:block; }
 .rev-tabs { display:flex; gap:4px; margin-bottom:10px; }
 .rev-tab { flex:1; padding:5px 0; text-align:center; font-size:10px; color:var(--text-muted); background:rgba(255,255,255,0.02); border:1px solid transparent; border-radius:6px; cursor:pointer; transition:all .2s; }
 .rev-tab.active { color:var(--accent-ice); background:rgba(56,189,248,0.1); border-color:var(--border-glow); }
@@ -372,8 +391,6 @@ body {
 .agency-count { color:var(--accent-ice); font-weight:700; }
 
 /* 业态融合Tab */
-#integration-panel { display:none; }
-#integration-panel.show { display:block; }
 .int-section { margin-bottom:12px; }
 .int-section-title { font-size:11px; font-weight:600; color:var(--accent-ice); margin-bottom:6px; padding-left:8px; border-left:2px solid var(--accent-ice); }
 .rfm-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
@@ -443,6 +460,16 @@ body {
 .sol-steps li { padding:6px 0; font-size:11px; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.03); counter-increment:step; }
 .sol-steps li::before { content:counter(step); display:inline-block; width:18px; height:18px; line-height:18px; text-align:center; background:var(--accent-ice); color:#060d1a; border-radius:50%; font-size:9px; font-weight:700; margin-right:8px; }
 .sol-effect { margin-top:12px; padding:8px 12px; background:rgba(34,197,94,0.05); border-radius:8px; font-size:10px; color:#4ade80; }
+
+/* 监控大屏弹窗 */
+#monitor-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:120; background:rgba(2,8,20,0.92); align-items:center; justify-content:center; }
+#monitor-modal.show { display:flex; }
+#monitor-card { background:#030d1f; border:1px solid rgba(60,150,220,0.4); border-radius:12px; padding:0; max-width:1000px; width:95%; position:relative; overflow:hidden; }
+#monitor-close { position:absolute; top:6px; right:10px; z-index:10; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.2); border-radius:4px; color:#fff; font-size:20px; cursor:pointer; width:30px; height:30px; line-height:26px; text-align:center; }
+#monitor-close:hover { background:rgba(239,68,68,0.6); }
+#monitor-title { padding:8px 16px; font-size:15px; font-weight:700; color:#e0f0ff; background:rgba(10,25,50,0.9); border-bottom:1px solid rgba(60,150,220,0.25); }
+#monitor-canvas { width:960px; height:480px; max-width:100%; margin:0 auto; }
+#monitor-canvas canvas { display:block; width:100%; height:100%; }
 
 /* 3D电子围栏发光 */
 .fence-glow { animation:fencePulse 2s ease-in-out infinite; }
@@ -542,6 +569,8 @@ body {
     <div class="panel-tab active" onclick="switchTab('overview', this)">景区概览</div>
     <div class="panel-tab" onclick="switchTab('camera', this)">监控画面</div>
     <div class="panel-tab" onclick="switchTab('review', this)">网评舆情</div>
+    <div class="panel-tab" onclick="switchTab('revenue', this)">业态营收</div>
+    <div class="panel-tab" onclick="switchTab('integration', this)">业态融合</div>
   </div>
 
   <!-- Tab: 景区概览 -->
@@ -582,6 +611,56 @@ body {
     <div class="service-chart" id="service-chart"></div>
     <div class="gap-list" id="gap-list"></div>
   </div>
+
+  <!-- Tab: 业态营收 -->
+  <div id="tab-revenue" style="display:none;">
+    <div class="panel-title" style="margin-bottom:8px;">💰 业态营收概览</div>
+    <div class="rev-tabs">
+      <div class="rev-tab active" onclick="switchRevTab('summary',this)">总览</div>
+      <div class="rev-tab" onclick="switchRevTab('detail',this)">明细</div>
+      <div class="rev-tab" onclick="switchRevTab('chart',this)">趋势</div>
+    </div>
+    <div id="rev-summary">
+      <div class="rev-row"><span class="rev-name">今日总营收</span><span class="rev-val" id="rev-total" style="font-size:16px;color:var(--accent-ice);">¥0</span></div>
+      <div class="rev-row"><span class="rev-name">门票收入</span><span class="rev-val" id="rev-ticket">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-ticket" style="width:0%"></div></div></div>
+      <div class="rev-row"><span class="rev-name">酒店住宿</span><span class="rev-val" id="rev-hotel">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-hotel" style="width:0%"></div></div></div>
+      <div class="rev-row"><span class="rev-name">餐饮消费</span><span class="rev-val" id="rev-dining">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-dining" style="width:0%"></div></div></div>
+      <div class="rev-row"><span class="rev-name">零售购物</span><span class="rev-val" id="rev-retail">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-retail" style="width:0%"></div></div></div>
+      <div class="rev-row"><span class="rev-name">停车收入</span><span class="rev-val" id="rev-parking">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-parking" style="width:0%"></div></div></div>
+    </div>
+    <div id="rev-detail" style="display:none;">
+      <div class="rev-detail" id="rev-detail-content"></div>
+    </div>
+    <div id="rev-chart" style="display:none;">
+      <div class="rev-chart" id="rev-chart-canvas"></div>
+    </div>
+  </div>
+
+  <!-- Tab: 业态融合 -->
+  <div id="tab-integration" style="display:none;">
+    <div class="panel-title" style="margin-bottom:8px;">🔗 业态融合分析</div>
+    <div class="int-section">
+      <div class="int-section-title">RFM客群分层</div>
+      <div class="rfm-grid">
+        <div class="rfm-cell"><div class="rfm-pct" style="color:#f59e0b;" id="rfm-high">23%</div><div class="rfm-label">高价值</div></div>
+        <div class="rfm-cell"><div class="rfm-pct" style="color:#22c55e;" id="rfm-active">41%</div><div class="rfm-label">活跃型</div></div>
+        <div class="rfm-cell"><div class="rfm-pct" style="color:#3b82f6;" id="rfm-potential">22%</div><div class="rfm-label">潜力型</div></div>
+        <div class="rfm-cell"><div class="rfm-pct" style="color:var(--text-muted);" id="rfm-atrisk">14%</div><div class="rfm-label">流失风险</div></div>
+      </div>
+    </div>
+    <div class="int-section">
+      <div class="int-section-title">消费转化漏斗</div>
+      <div id="funnel-container"></div>
+    </div>
+    <div class="int-section">
+      <div class="int-section-title">交叉业态关联</div>
+      <div class="cross-chart" id="cross-chart"></div>
+    </div>
+    <div class="int-section">
+      <div class="int-section-title">🎫 套票推荐</div>
+      <div class="ticket-grid" id="ticket-grid"></div>
+    </div>
+  </div>
 </div>
 
 <div id="bottom-bar">
@@ -593,6 +672,8 @@ body {
   <span>📡 设备在线: <span class="highlight" style="color:#22c55e;">142/148</span></span>
   <span style="cursor:pointer;" onclick="toggleAlert()">🔔 预警: <span class="highlight" style="color:#f59e0b;" id="alert-count">2</span></span>
 </div>
+
+<div id="heatmap-bar"></div>
 
 <!-- 巡检工作面板 -->
 <div id="inspection-panel" class="panel">
@@ -626,6 +707,16 @@ body {
       <div class="detail-kpi"><div class="kpi-val" id="dt-status">🟢</div><div class="kpi-label">状态</div><div class="kpi-hint" id="dt-status-hint">正常运营</div></div>
     </div>
     <div class="detail-chart" id="dt-chart"></div>
+    <div class="ai-compare-section" style="margin: -10px 0 10px; background:rgba(8,25,55,0.5); border-radius:8px; padding:8px 12px; border:1px solid rgba(56,189,248,0.15);">
+      <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-bottom:6px;">🤖 AI预测 vs 实际对比</div>
+      <table class="ai-compare-table">
+        <tr><th>指标</th><th>AI预测</th><th>当前实际</th><th>偏差</th></tr>
+        <tr><td>当前人数</td><td id="dt-ai-count">-</td><td id="dt-actual-count">-</td><td id="dt-dev-count">-</td></tr>
+        <tr><td>满载率</td><td id="dt-ai-ratio">-</td><td id="dt-actual-ratio">-</td><td id="dt-dev-ratio">-</td></tr>
+        <tr><td>排队时间</td><td id="dt-ai-queue">-</td><td id="dt-actual-queue">-</td><td id="dt-dev-queue">-</td></tr>
+        <tr><td>今日累计</td><td id="dt-ai-today">-</td><td id="dt-actual-today">-</td><td id="dt-dev-today">-</td></tr>
+      </table>
+    </div>
     <div class="detail-info" id="dt-info">
       <div class="info-row"><span class="info-label">电子围栏</span><span class="info-val" id="dt-fence">正常</span></div>
       <div class="info-row"><span class="info-label">监控覆盖</span><span class="info-val" id="dt-cam">8路在线</span></div>
@@ -650,53 +741,12 @@ body {
   </div>
 </div>
 
-<!-- 业态营收Tab (右侧面板) -->
-<div id="revenue-panel" class="panel show" style="position:fixed; right:312px; top:72px; width:280px; max-height:320px; overflow-y:auto;">
-  <div class="panel-title" style="margin-bottom:8px;">💰 业态营收概览</div>
-  <div class="rev-tabs">
-    <div class="rev-tab active" onclick="switchRevTab('summary',this)">总览</div>
-    <div class="rev-tab" onclick="switchRevTab('detail',this)">明细</div>
-    <div class="rev-tab" onclick="switchRevTab('chart',this)">趋势</div>
-  </div>
-  <div id="rev-summary">
-    <div class="rev-row"><span class="rev-name">今日总营收</span><span class="rev-val" id="rev-total" style="font-size:16px;color:var(--accent-ice);">¥0</span></div>
-    <div class="rev-row"><span class="rev-name">门票收入</span><span class="rev-val" id="rev-ticket">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-ticket" style="width:0%"></div></div></div>
-    <div class="rev-row"><span class="rev-name">酒店住宿</span><span class="rev-val" id="rev-hotel">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-hotel" style="width:0%"></div></div></div>
-    <div class="rev-row"><span class="rev-name">餐饮消费</span><span class="rev-val" id="rev-dining">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-dining" style="width:0%"></div></div></div>
-    <div class="rev-row"><span class="rev-name">零售购物</span><span class="rev-val" id="rev-retail">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-retail" style="width:0%"></div></div></div>
-    <div class="rev-row"><span class="rev-name">停车收入</span><span class="rev-val" id="rev-parking">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-parking" style="width:0%"></div></div></div>
-  </div>
-  <div id="rev-detail" style="display:none;">
-    <div class="rev-detail" id="rev-detail-content"></div>
-  </div>
-  <div id="rev-chart" style="display:none;">
-    <div class="rev-chart" id="rev-chart-canvas"></div>
-  </div>
-</div>
-
-<!-- 业态融合Tab (右侧面板) -->
-<div id="integration-panel" class="panel show" style="position:fixed; right:312px; top:400px; width:280px; max-height:280px; overflow-y:auto;">
-  <div class="panel-title" style="margin-bottom:8px;">🔗 业态融合分析</div>
-  <div class="int-section">
-    <div class="int-section-title">RFM客群分层</div>
-    <div class="rfm-grid">
-      <div class="rfm-cell"><div class="rfm-pct" style="color:#f59e0b;" id="rfm-high">23%</div><div class="rfm-label">高价值</div></div>
-      <div class="rfm-cell"><div class="rfm-pct" style="color:#22c55e;" id="rfm-active">41%</div><div class="rfm-label">活跃型</div></div>
-      <div class="rfm-cell"><div class="rfm-pct" style="color:#3b82f6;" id="rfm-potential">22%</div><div class="rfm-label">潜力型</div></div>
-      <div class="rfm-cell"><div class="rfm-pct" style="color:var(--text-muted);" id="rfm-atrisk">14%</div><div class="rfm-label">流失风险</div></div>
-    </div>
-  </div>
-  <div class="int-section">
-    <div class="int-section-title">消费转化漏斗</div>
-    <div id="funnel-container"></div>
-  </div>
-  <div class="int-section">
-    <div class="int-section-title">交叉业态关联</div>
-    <div class="cross-chart" id="cross-chart"></div>
-  </div>
-  <div class="int-section">
-    <div class="int-section-title">🎫 套票推荐</div>
-    <div class="ticket-grid" id="ticket-grid"></div>
+<!-- 监控大屏弹窗 -->
+<div id="monitor-modal" onclick="if(event.target===this)closeMonitor()">
+  <div id="monitor-card">
+    <button id="monitor-close" onclick="closeMonitor()">&times;</button>
+    <div id="monitor-title">监控大屏</div>
+    <div id="monitor-canvas"></div>
   </div>
 </div>
 
@@ -1094,21 +1144,21 @@ function createBuilding(x, z, config) {
     // ── Tiered arena with ribbed dome ──
     const nRings = 5;
     for (let i = 0; i < nRings; i++) {
-      const rw = w - i * 0.65;
-      const tier = new THREE.Mesh(new THREE.CylinderGeometry(rw, rw + 0.1, 0.4, 20), mat);
+      const rw = (w - i * 0.65) / 2;
+      const tier = new THREE.Mesh(new THREE.CylinderGeometry(rw, rw + 0.05, 0.4, 20), mat);
       tier.position.y = 0.2 + i * 0.4;
       tier.castShadow = true;
       group.add(tier);
       // Ice ring on each tier
       if (i < nRings - 1) {
-        const iceRing = new THREE.Mesh(new THREE.TorusGeometry(rw - 0.1, 0.06, 6, 24), accentMat);
+        const iceRing = new THREE.Mesh(new THREE.TorusGeometry(rw - 0.05, 0.06, 6, 24), accentMat);
         iceRing.position.y = 0.4 + i * 0.4;
         iceRing.rotation.x = Math.PI / 2;
         group.add(iceRing);
       }
     }
     // Dome structure with ribs
-    const domeR = w * 0.7;
+    const domeR = w * 0.35;
     const domeTop = new THREE.Mesh(new THREE.SphereGeometry(domeR, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), roofMat);
     domeTop.position.y = 2.2;
     domeTop.castShadow = true;
@@ -1280,23 +1330,24 @@ const buildingDefs = [
   // Central cluster
   { x: 0, z: -5, type: 'tower', height: 13, width: 4, depth: 4, color: '#8cc8f0', roofColor: '#b8e0ff', label: '冰晶城堡', density: 320 },
   { x: -9, z: -2, type: 'palace', height: 7, width: 8, depth: 6, color: '#7db8e8', roofColor: '#a8d8f8', label: '冰雪宫殿', density: 245 },
-  { x: 9, z: -3, type: 'slide', height: 1, width: 13, depth: 3, color: '#90d0f8', roofColor: '#c0e8ff', label: '极速冰滑梯', density: 180 },
+  { x: 10, z: -4, type: 'slide', height: 1, width: 13, depth: 3, color: '#90d0f8', roofColor: '#c0e8ff', label: '极速冰滑梯', density: 180 },
   { x: -3, z: 7, type: 'dome', height: 2, width: 5, depth: 5, color: '#88c8f0', roofColor: '#b0dcf8', label: '梦幻雪圈', density: 155 },
-  { x: 7, z: 6, type: 'tower', height: 8, width: 3, depth: 3, color: '#82c4ec', roofColor: '#a8d8f8', label: '望雪塔', density: 98 },
-  { x: -8, z: 6, type: 'gate', height: 10, width: 6, depth: 2, color: '#78bce4', roofColor: '#a0d4f4', label: '迎宾门', density: 420 },
-  { x: 4, z: -11, type: 'palace', height: 5, width: 6, depth: 5, color: '#86c8f0', roofColor: '#b4dcf8', label: '冰酒吧', density: 135 },
-  { x: -6, z: -10, type: 'tower', height: 7, width: 2.5, depth: 2.5, color: '#8acaf2', roofColor: '#b8e0ff', label: '观景塔', density: 72 },
+  { x: 8, z: 6, type: 'tower', height: 8, width: 3, depth: 3, color: '#82c4ec', roofColor: '#a8d8f8', label: '望雪塔', density: 98 },
+  { x: -10, z: 11.5, type: 'gate', height: 10, width: 6, depth: 2, color: '#78bce4', roofColor: '#a0d4f4', label: '北入口', density: 420 },
+  { x: 4.5, z: -12, type: 'palace', height: 5, width: 6, depth: 5, color: '#86c8f0', roofColor: '#b4dcf8', label: '冰酒吧', density: 135 },
+  { x: -6, z: -11, type: 'tower', height: 7, width: 2.5, depth: 2.5, color: '#8acaf2', roofColor: '#b8e0ff', label: '观景塔', density: 72 },
   // New buildings
   { x: 12, z: 4, type: 'pagoda', height: 6, width: 3, depth: 3, color: '#80c4ee', roofColor: '#b0e0ff', label: '冰晶宝塔', density: 110 },
-  { x: -12, z: 3, type: 'sculptures', height: 1, width: 5, depth: 5, color: '#90d4f8', roofColor: '#c0e8ff', label: '冰雕花园', density: 65 },
-  { x: 0, z: 10, type: 'tower', height: 9, width: 3.5, depth: 3.5, color: '#84c6ee', roofColor: '#b4dcf8', label: '北极光塔', density: 88 },
-  { x: 3, z: 2, type: 'dome', height: 2.5, width: 3.5, depth: 3.5, color: '#86caf2', roofColor: '#b8e4ff', label: '冰雪演艺厅', density: 200 },
-  { x: -5, z: -2, type: 'palace', height: 4.5, width: 5, depth: 4, color: '#80c0e8', roofColor: '#a8d8f8', label: '游客中心', density: 380 },
-  { x: 14, z: -5, type: 'pagoda', height: 5, width: 2.5, depth: 2.5, color: '#7ec0ea', roofColor: '#a0d4f4', label: '许愿塔', density: 55 },
-  { x: -13, z: -6, type: 'slide', height: 0.8, width: 9, depth: 2, color: '#8cd0f4', roofColor: '#bce4fc', label: '迷你滑道', density: 92 },
-  { x: -2, z: -14, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
+  { x: -17.5, z: 4.5, type: 'sculptures', height: 1, width: 5, depth: 5, color: '#90d4f8', roofColor: '#c0e8ff', label: '冰雕花园', density: 65 },
+  { x: 2.5, z: 10.5, type: 'tower', height: 9, width: 3.5, depth: 3.5, color: '#84c6ee', roofColor: '#b4dcf8', label: '北极光塔', density: 88 },
+  { x: 3, z: 1.5, type: 'dome', height: 2.5, width: 3.5, depth: 3.5, color: '#86caf2', roofColor: '#b8e4ff', label: '冰雪演艺厅', density: 200 },
+  { x: -18, z: -18, type: 'palace', height: 4.5, width: 5, depth: 4, color: '#80c0e8', roofColor: '#a8d8f8', label: '游客中心', density: 380 },
+  { x: 19, z: -6, type: 'pagoda', height: 5, width: 2.5, depth: 2.5, color: '#7ec0ea', roofColor: '#a0d4f4', label: '许愿塔', density: 55 },
+  { x: -13, z: -7.5, type: 'slide', height: 0.8, width: 9, depth: 2, color: '#8cd0f4', roofColor: '#bce4fc', label: '迷你滑道', density: 92 },
+  { x: -5, z: -16.5, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
 ];
 
+const fences = {}; // { buildingLabel: { area, border, building } }
 const buildingGroups = [];
 
   buildingDefs.forEach(def => {
@@ -1318,6 +1369,13 @@ buildings.forEach(b => {
   label.position.set(b.x, topY, b.z);
   scene.add(label);
   bubbles.push({ obj: label, building: b, div });
+});
+
+// ── 为所有建筑创建电子围栏+地面热力图 ──
+buildingDefs.forEach(def => {
+  if (def._group && !fences[def.label]) {
+    createFence(def, def._group);
+  }
 });
 
 // ── Snow Particles ──
@@ -1379,6 +1437,7 @@ const dataState = {
   satisfaction: 94.2,
   parkingUsed: 312,
   parkingTotal: 500,
+  _lastRevenue: 386.5,
 };
 
 // ── Alert System ──
@@ -1418,8 +1477,13 @@ function initCameras() {
   cameraNames.forEach((name, i) => {
     const card = document.createElement('div');
     card.className = 'camera-card';
+    card.style.cursor = 'pointer';
+    card.title = '点击查看' + name + '监控大屏';
+    card.addEventListener('click', () => {
+      openMonitorScreen(name);
+    });
     const canvas = document.createElement('canvas');
-    canvas.width = 128; canvas.height = 60;
+    canvas.width = 256; canvas.height = 120;
     const label = document.createElement('div');
     label.className = 'camera-label';
     label.innerHTML = `<span>📍 ${name}</span><span class="camera-live">LIVE</span>`;
@@ -1430,31 +1494,150 @@ function initCameras() {
   });
 }
 
+// 摄像头与建筑的对应关系
+const cameraBuildingMap = {
+  '主入口': '南入口',
+  '冰晶城堡': '冰晶城堡',
+  '极速冰滑梯': '极速冰滑梯',
+  '梦幻雪圈': '梦幻雪圈',
+  '冰雪大舞台': '冰雪演艺厅',
+  '餐饮广场': '冰酒吧',
+  '停车场A': '观景塔',
+  '游客中心': '游客中心',
+};
+
 function updateCameras() {
+  const now = Date.now();
   cameraCanvases.forEach(c => {
     const ctx = c.canvas.getContext('2d');
-    // Simulated camera: dark grainy image with noise
-    const now = Date.now();
-    // Random "people" shapes that change slightly
-    ctx.fillStyle = `rgb(${10 + Math.random()*20}, ${20 + Math.random()*15}, ${35 + Math.random()*20})`;
-    ctx.fillRect(0, 0, c.canvas.width, c.canvas.height);
-    // Simulate moving figures
-    for (let i = 0; i < 8 + Math.floor(Math.random() * 12); i++) {
-      const x = 10 + ((i * 13 + (now % 5000) / 100) % c.canvas.width);
-      const y = 15 + (Math.sin(i * 2.7 + now / 3000) * 8) + 15;
-      ctx.fillStyle = `rgba(${180 + Math.random()*40}, ${210 + Math.random()*30}, ${240 + Math.random()*15}, 0.7)`;
-      ctx.beginPath();
-      ctx.ellipse(x, y, 3, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
+    const w = c.canvas.width, h = c.canvas.height;
+
+    // 清空
+    ctx.clearRect(0, 0, w, h);
+
+    // 夜景天空渐变
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+    skyGrad.addColorStop(0, '#050d1a'); skyGrad.addColorStop(0.6, '#0e1f3a'); skyGrad.addColorStop(1, '#1a3050');
+    ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, w, h * 0.58);
+
+    // 雪花（背景）
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    for (let i = 0; i < 12; i++) {
+      const sx = ((c.name.charCodeAt(0) * 37 + i * 31) % w);
+      const sy = ((now * 0.03 + i * 47) % (h * 0.9));
+      ctx.beginPath(); ctx.arc(sx, sy, 0.6 + (i % 3) * 0.4, 0, Math.PI * 2); ctx.fill();
     }
-    // Timestamp overlay
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    ctx.fillRect(0, 0, c.canvas.width, 16);
-    ctx.fillStyle = '#22c55e';
-    ctx.font = '8px monospace';
-    const d = new Date();
-    ctx.fillText(`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`, 4, 11);
-    c.flicker = Math.random();
+
+    // 雪地
+    const gndGrad = ctx.createLinearGradient(0, h * 0.55, 0, h);
+    gndGrad.addColorStop(0, '#7a8fa0'); gndGrad.addColorStop(0.2, '#b8c8d8'); gndGrad.addColorStop(1, '#d8e4f0');
+    ctx.fillStyle = gndGrad; ctx.fillRect(0, h * 0.55, w, h * 0.45);
+
+    // ── 对应建筑数据 ──
+    const bldName = cameraBuildingMap[c.name] || c.name;
+    const bld = buildingDefs.find(b => b.label === bldName);
+    const density = bld ? bld.density : 100;
+    const cap = bld ? Math.round(bld.width * bld.depth * 12) : 500;
+    const ratio = Math.min(1, density / Math.max(1, cap));
+    const neighbors = (buildingAdjacency[bldName] || []).slice(0, 3);
+
+    // ── 建筑剪影（按类型区分的清晰轮廓）──
+    const bx = w * 0.5, by = h * 0.52, bw = w * 0.5, bh = h * 0.35;
+    ctx.save();
+    ctx.shadowColor = 'rgba(100,200,255,0.3)'; ctx.shadowBlur = 10;
+
+    if (bldName.includes('城堡') || (bldName.includes('塔') && !bldName.includes('滑') && !bldName.includes('望'))) {
+      // 尖塔型城堡
+      ctx.fillStyle = 'rgba(45,75,115,0.9)';
+      ctx.beginPath(); ctx.moveTo(bx, by - bh * 0.75); ctx.lineTo(bx - bw * 0.28, by - bh * 0.1); ctx.lineTo(bx - bw * 0.32, by + bh * 0.35);
+      ctx.lineTo(bx + bw * 0.32, by + bh * 0.35); ctx.lineTo(bx + bw * 0.28, by - bh * 0.1); ctx.closePath(); ctx.fill();
+      // 发光窗户
+      ctx.fillStyle = '#56bdf8'; ctx.shadowColor = 'rgba(86,189,248,0.6)'; ctx.shadowBlur = 6;
+      ctx.fillRect(bx - 12, by + 2, 8, 10); ctx.fillRect(bx + 4, by + 5, 7, 8);
+    } else if (bldName.includes('滑')) {
+      // 长条型滑道
+      ctx.fillStyle = 'rgba(50,80,125,0.85)'; ctx.fillRect(bx - bw * 0.45, by - bh * 0.15, bw * 0.9, bh * 0.35);
+      ctx.fillStyle = 'rgba(58,90,140,0.85)'; ctx.fillRect(bx - bw * 0.35, by - bh * 0.45, bw * 0.7, bh * 0.3);
+      ctx.fillStyle = '#56bdf8'; ctx.shadowColor = 'rgba(86,189,248,0.5)';
+      for (let wx = bx - bw * 0.3; wx <= bx + bw * 0.25; wx += 16) ctx.fillRect(wx, by - bh * 0.32, 8, 8);
+    } else if (bldName.includes('圈') || bldName.includes('演艺')) {
+      // 穹顶型
+      ctx.fillStyle = 'rgba(48,78,128,0.85)'; ctx.beginPath(); ctx.arc(bx, by - bh * 0.05, bw * 0.25, Math.PI, 0); ctx.fill();
+      ctx.fillRect(bx - bw * 0.25, by - bh * 0.05, bw * 0.5, bh * 0.4);
+      ctx.fillStyle = '#56bdf8'; ctx.shadowColor = 'rgba(86,189,248,0.5)';
+      ctx.fillRect(bx - bw * 0.12, by + 2, 10, 10); ctx.fillRect(bx + bw * 0.04, by, 8, 9);
+    } else if (bldName.includes('入口') || bldName.includes('门')) {
+      // 门型
+      ctx.fillStyle = 'rgba(45,75,120,0.85)'; ctx.fillRect(bx - bw * 0.38, by - bh * 0.3, bw * 0.76, bh * 0.55);
+      ctx.fillStyle = 'rgba(55,88,140,0.85)'; ctx.beginPath(); ctx.arc(bx, by - bh * 0.3, bw * 0.35, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = 'rgba(8,16,32,0.7)'; ctx.beginPath(); ctx.arc(bx, by - bh * 0.28, bw * 0.18, Math.PI, 0); ctx.fillRect(bx - bw * 0.18, by - bh * 0.28, bw * 0.36, bh * 0.45);
+      ctx.fill();
+    } else {
+      // 通用坡顶建筑
+      ctx.fillStyle = 'rgba(42,70,118,0.85)'; ctx.fillRect(bx - bw * 0.35, by - bh * 0.1, bw * 0.7, bh * 0.38);
+      ctx.fillStyle = 'rgba(55,85,135,0.85)'; ctx.beginPath(); ctx.moveTo(bx - bw * 0.4, by - bh * 0.1); ctx.lineTo(bx, by - bh * 0.55); ctx.lineTo(bx + bw * 0.4, by - bh * 0.1); ctx.fill();
+      ctx.fillStyle = '#56bdf8'; ctx.shadowColor = 'rgba(86,189,248,0.5)';
+      ctx.fillRect(bx - 8, by + 2, 7, 8); ctx.fillRect(bx + 2, by + 4, 6, 7);
+    }
+    ctx.restore();
+
+    // ── 人员流动粒子（密度驱动）──
+    const crowdCount = Math.round(ratio * 40);
+    for (let i = 0; i < crowdCount; i++) {
+      const seed = c.name.charCodeAt(0) * 7 + i * 13;
+      const dir = i % 3;
+      let nx, ny;
+      if (dir === 0) {
+        // 建筑附近徘徊
+        nx = bx + Math.sin(seed * 1.7 + now * 0.003) * bw * 0.32;
+        ny = by + bh * 0.15 + Math.cos(seed * 2.3 + now * 0.002) * bh * 0.12;
+      } else if (dir === 1) {
+        // 向邻居方向流动（左→右或右→左）
+        const flowDir = i % 2 === 0 ? 1 : -1;
+        nx = bx + flowDir * ((seed * 1.1 + now * 0.005) % (bw * 0.5));
+        ny = by + bh * 0.2 + Math.sin(seed + now * 0.003) * bh * 0.08;
+      } else {
+        // 从入口进出
+        nx = bx + Math.sin(now * 0.004 + seed) * bw * 0.38;
+        ny = by + bh * 0.3 - ((seed + now * 0.004) % (bh * 0.5));
+      }
+      ctx.fillStyle = dir === 0 ? 'rgba(200,220,255,0.75)' : 'rgba(140,200,240,0.65)';
+      ctx.beginPath(); ctx.arc(nx, ny, 1.4, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // ── 邻接建筑流量指示（右上方）──
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(w - 55, 16, 52, neighbors.length * 11 + 4);
+    ctx.fillStyle = '#fff'; ctx.font = '7px sans-serif'; ctx.fillText('邻接流向', w - 52, 26);
+    neighbors.forEach((nb, fi) => {
+      const nbBld = buildingDefs.find(b => b.label === nb);
+      const nbRatio = nbBld ? nbBld.density / Math.max(1, nbBld.width * nbBld.depth * 12) : 0;
+      const flow = ratio > nbRatio ? -1 : 1;
+      ctx.fillStyle = flow > 0 ? '#4ade80' : '#fb923c';
+      ctx.fillText((flow > 0 ? '← ' : '→ ') + nb, w - 52, 38 + fi * 11);
+    });
+
+    // ── 数据栏（顶部）──
+    ctx.fillStyle = 'rgba(0,0,0,0.78)'; ctx.fillRect(0, 0, w, 15);
+    ctx.fillStyle = '#4ade80'; ctx.font = 'bold 9px monospace';
+    const dotAlpha = 0.5 + Math.sin(now * 0.005) * 0.5;
+    ctx.globalAlpha = dotAlpha; ctx.fillText('●', 4, 11);
+    ctx.globalAlpha = 1; ctx.fillText('LIVE', 12, 11);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "Microsoft YaHei", sans-serif';
+    ctx.fillText(c.name, 48, 11);
+    ctx.fillStyle = '#ccc'; ctx.font = '8px monospace';
+    ctx.fillText(Math.round(density) + ' / ' + cap + '人', 110, 11);
+    // 满载率颜色
+    const pct = (ratio * 100).toFixed(0);
+    ctx.fillStyle = ratio > 0.85 ? '#ef4444' : ratio > 0.6 ? '#f59e0b' : '#4ade80';
+    ctx.font = 'bold 10px monospace'; ctx.fillText(pct + '%', w - 32, 11);
+
+    // ── 底部密度条 ──
+    const barH = 3, barY = h - barH - 2;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(2, barY, w - 4, barH);
+    const barGrad = ctx.createLinearGradient(2, 0, w - 2, 0);
+    barGrad.addColorStop(0, '#22c55e'); barGrad.addColorStop(0.5, '#eab308'); barGrad.addColorStop(1, '#ef4444');
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(2, barY, (w - 4) * ratio, barH);
   });
 }
 
@@ -1489,22 +1672,30 @@ function switchTab(tab, el) {
   document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
   document.getElementById('tab-camera').style.display = tab === 'camera' ? 'block' : 'none';
   document.getElementById('tab-review').style.display = tab === 'review' ? 'block' : 'none';
+  document.getElementById('tab-revenue').style.display = tab === 'revenue' ? 'block' : 'none';
+  document.getElementById('tab-integration').style.display = tab === 'integration' ? 'block' : 'none';
 
-  // Tab切换后刷新ECharts图表（修复display:none → visible后尺寸为0的问题）
-  if (tab === 'review') {
-    setTimeout(() => {
+  // Tab切换后刷新ECharts图表
+  setTimeout(() => {
+    if (tab === 'review') {
       updateReviews();
       updateSemanticAnalysis();
       ['sentiment-chart', 'service-chart'].forEach(id => {
         if (echartsInstances[id]) echartsInstances[id].resize();
       });
-    }, 100);
-  }
-  if (tab === 'overview') {
-    setTimeout(() => {
+    }
+    if (tab === 'overview') {
       if (echartsInstances['predict-chart']) echartsInstances['predict-chart'].resize();
-    }, 100);
-  }
+    }
+    if (tab === 'revenue') {
+      updateRevenueDetail();
+      if (echartsInstances['rev-chart-canvas']) echartsInstances['rev-chart-canvas'].resize();
+    }
+    if (tab === 'integration') {
+      if (echartsInstances['cross-chart']) echartsInstances['cross-chart'].resize();
+      if (echartsInstances['funnel-container']) echartsInstances['funnel-container'].resize();
+    }
+  }, 100);
 }
 window.switchTab = switchTab;
 
@@ -1514,36 +1705,38 @@ for (let i = 29; i >= 0; i--) {
 }
 
 function updateData() {
-  const delta = (Math.random() - 0.45) * 80;
-  dataState.currentVisitors = Math.max(7500, Math.min(10500, dataState.currentVisitors + delta));
-  dataState.entryRate = Math.max(100, Math.min(300, dataState.entryRate + (Math.random() - 0.5) * 30));
-  dataState.totalToday += Math.floor(Math.random() * 50) + 20;
-  dataState.revenue += (Math.random() * 2.5 + 0.5);
-  dataState.satisfaction = Math.max(88, Math.min(97, dataState.satisfaction + (Math.random() - 0.5) * 0.6));
-  dataState.parkingUsed += Math.floor((Math.random() - 0.45) * 10);
+  // currentVisitors 和 entryRate 已由 tickDataTargets() 基于守恒模型更新，此处不再随机抖动
+  const delta = dataState.currentVisitors - (dataState.visitorHistory[dataState.visitorHistory.length - 1] || dataState.currentVisitors);
+  dataState.totalToday += Math.max(0, Math.round(delta * 0.6 + 20 + Math.random() * 10));
+  dataState.revenue += (Math.random() * 0.8 + 0.3); // 缓慢增长
+  // 满意度缓慢变化
+  dataState.satisfaction = Math.max(88, Math.min(97, dataState.satisfaction + (Math.random() - 0.52) * 0.25));
+  dataState.parkingUsed += Math.floor((Math.random() - 0.48) * 5);
   dataState.parkingUsed = Math.max(200, Math.min(490, dataState.parkingUsed));
   dataState.visitorHistory.push(dataState.currentVisitors);
   if (dataState.visitorHistory.length > 30) dataState.visitorHistory.shift();
 
-  dataState.weatherTemp = -14 + Math.round((Math.random() - 0.5) * 4);
-  const weatherOptions = ['小雪', '多云', '晴', '阵雪', '阴'];
-  if (Math.random() < 0.1) dataState.weatherType = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+  // 天气每30秒才可能变化一次
+  if (!window._weatherTimer) window._weatherTimer = 0;
+  window._weatherTimer++;
+  if (window._weatherTimer >= 6) { // 6 * 5s = 30s
+    window._weatherTimer = 0;
+    dataState.weatherTemp = -14 + Math.round((Math.random() - 0.5) * 4);
+    const weatherOptions = ['小雪', '多云', '晴', '阵雪', '阴'];
+    if (Math.random() < 0.15) dataState.weatherType = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+  }
 
-  // Update building densities
-  buildings.forEach(b => {
-    const jitter = (Math.random() - 0.5) * 40;
-    b.density = Math.max(20, Math.min(500, b.density + jitter));
-  });
+  // 建筑密度不再独立随机抖动，由 tickDataTargets() + lerpData() 统一管理
 
-  // Update bubbles
+  // Update bubbles (稳定显示，不闪烁)
   bubbles.forEach(bub => {
     const ccap = bub.building.width * bub.building.depth * 12;
-      const cr = bub.building.density / Math.max(1, ccap);
-      const cqm = Math.round(cr * 45);
-      let cqc = '#22c55e';
-      if (cr > 0.85) cqc = '#ef4444';
-      else if (cr > 0.6) cqc = '#f59e0b';
-      bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span><br><span style="font-size:9px;color:${cqc}">🕐~${cqm}分钟</span>`;
+    const cr = bub.building.density / Math.max(1, ccap);
+    const cqm = Math.round(cr * 45);
+    let cqc = 'var(--text-secondary)';
+    if (cr > 0.85) cqc = '#ef4444';
+    else if (cr > 0.6) cqc = '#f59e0b';
+    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人 <span style="font-size:9px;color:${cqc}">🕐${cqm}min</span></span>`;
   });
 }
 
@@ -1557,7 +1750,10 @@ function renderUI() {
   document.getElementById('satisfaction').textContent = dataState.satisfaction.toFixed(1);
   document.getElementById('satisfaction-bar').style.width = dataState.satisfaction + '%';
   document.getElementById('parking-info').textContent = `${dataState.parkingUsed}/${dataState.parkingTotal}`;
-  document.getElementById('revenue-delta').innerHTML = `↑ ${(1.5 + Math.random()*10).toFixed(1)}% 较昨日`;
+  document.getElementById('revenue-delta').innerHTML = dataState._lastRevenue > 0
+    ? `${dataState.revenue >= dataState._lastRevenue ? '↑' : '↓'} ${Math.abs(dataState.revenue - dataState._lastRevenue).toFixed(1)}万 较上时段`
+    : '↑ 0.0万 较上时段';
+  dataState._lastRevenue = dataState.revenue;
 
   const delta = dataState.currentVisitors - dataState.visitorHistory[dataState.visitorHistory.length - 2];
   const pct = dataState.visitorHistory.length > 1
@@ -1710,6 +1906,19 @@ function renderFacilityList() {
 renderZoneList();
 renderFacilityList();
 
+// ── 底部热力图 ──
+const heatmapBar = document.getElementById('heatmap-bar');
+function renderHeatmap() {
+  if (!heatmapBar) return;
+  heatmapBar.innerHTML = `
+    <span>📊 人流密度图例</span>
+    <span style="color:#22c55e;">低</span>
+    <div class="hm-gradient"></div>
+    <span style="color:#ef4444;">高</span>
+  `;
+}
+renderHeatmap(); // 初始化一次即可
+
 // ── Update zone data periodically ──
 function updateZoneData() {
   zoneData.forEach(z => {
@@ -1752,16 +1961,6 @@ function animate() {
     updateFenceHeatmap(b.label, b.density / Math.max(1, cap));
   });
 
-  // 围栏脉冲动画
-  Object.values(fences).forEach(f => {
-    f.lines.children.forEach(c => {
-      if (c.userData && c.userData.baseY !== undefined) {
-        c.position.y = c.userData.baseY + Math.sin(frameNow * 0.004 + c.userData.phase) * 0.3;
-        c.material.opacity = 0.3 + Math.abs(Math.sin(frameNow * 0.004 + c.userData.phase)) * 0.5;
-      }
-    });
-  });
-
   requestAnimationFrame(animate);
 
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -1799,7 +1998,7 @@ function animate() {
 
   // Data update
   dataUpdateTimer += dt;
-  if (dataUpdateTimer >= 2) {
+  if (dataUpdateTimer >= 5) {
     dataUpdateTimer = 0;
     updateData();
     renderUI();
@@ -1861,101 +2060,125 @@ function resizeAllCharts() {
 window.addEventListener('resize', () => setTimeout(resizeAllCharts, 200));
 
 // ── 电子围栏系统 ──
-const fences = {}; // { buildingLabel: { group, pillars, area, lines } }
+// 计算建筑间不重叠的围栏尺寸（用中位线算法保证绝对不重叠）
+function calcSafeFenceSize(building) {
+  // 中点算法：每个方向取与相邻建筑的中点
+  // 围栏边界 = 两栋建筑边缘的精确中点，数学上保证永不重叠
+  const minExt = 1.2;
+  let hw = building.width / 2 + minExt;
+  let hd = building.depth / 2 + minExt;
 
-const FENCE_COLORS = {
-  low:    { main: 0x22c55e, glow: 0x4ade80, alpha: 0.15 },
-  medium: { main: 0xf59e0b, glow: 0xfbbf24, alpha: 0.25 },
-  high:   { main: 0xef4444, glow: 0xf87171, alpha: 0.35 },
-};
+  buildingDefs.forEach(other => {
+    if (other === building) return;
+    const dx = other.x - building.x;
+    const dz = other.z - building.z;
 
-function createFence(building, bldGroup) {
-  const bx = building.x, bz = building.z;
-  const hw = (building.width || 4) / 2 + 1.8;
-  const hd = (building.depth || 4) / 2 + 1.8;
-  const corners = [
-    { x: bx - hw, z: bz - hd },
-    { x: bx + hw, z: bz - hd },
-    { x: bx + hw, z: bz + hd },
-    { x: bx - hw, z: bz + hd },
-  ];
-
-  const fenceGroup = new THREE.Group();
-  const pillars = [];
-
-  // 4根角柱
-  corners.forEach(c => {
-    const pillarGeo = new THREE.CylinderGeometry(0.2, 0.25, 2.2, 8);
-    const pillarMat = new THREE.MeshPhongMaterial({ color: 0x38bdf8, emissive: 0x1c5cab, emissiveIntensity: 0.6, transparent: true, opacity: 0.8 });
-    const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-    pillar.position.set(c.x, 1.1, c.z);
-    fenceGroup.add(pillar);
-    pillars.push(pillar);
-
-    // 柱顶发光球
-    const ballGeo = new THREE.SphereGeometry(0.22, 8, 8);
-    const ballMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.9 });
-    const ball = new THREE.Mesh(ballGeo, ballMat);
-    ball.position.set(c.x, 2.3, c.z);
-    fenceGroup.add(ball);
+    if (dx > 0) {
+      const midX = (building.x + building.width / 2 + other.x - other.width / 2) / 2;
+      const maxHW = midX - building.x;
+      if (maxHW < hw) hw = maxHW;
+    } else if (dx < 0) {
+      const midX = (building.x - building.width / 2 + other.x + other.width / 2) / 2;
+      const maxHW = building.x - midX;
+      if (maxHW < hw) hw = maxHW;
+    }
+    if (dz > 0) {
+      const midZ = (building.z + building.depth / 2 + other.z - other.depth / 2) / 2;
+      const maxHD = midZ - building.z;
+      if (maxHD < hd) hd = maxHD;
+    } else if (dz < 0) {
+      const midZ = (building.z - building.depth / 2 + other.z + other.depth / 2) / 2;
+      const maxHD = building.z - midZ;
+      if (maxHD < hd) hd = maxHD;
+    }
   });
 
-  // 区域面
-  const areaGeo = new THREE.PlaneGeometry(hw * 2, hd * 2);
-  const areaMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.25, depthWrite: false });
-  const area = new THREE.Mesh(areaGeo, areaMat);
-  area.rotation.x = -Math.PI / 2;
-  area.position.y = 0.05;
-  fenceGroup.add(area);
-
-  // 4条连线
-  const lineGroup = new THREE.Group();
-  for (let i = 0; i < 4; i++) {
-    const j = (i + 1) % 4;
-    const points = [
-      new THREE.Vector3(corners[i].x, 0.15, corners[i].z),
-      new THREE.Vector3(corners[j].x, 0.15, corners[j].z),
-    ];
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7, depthTest: true });
-    lineGroup.add(new THREE.Line(lineGeo, lineMat));
-
-    // 脉冲段
-    const midX = (corners[i].x + corners[j].x) / 2;
-    const midZ = (corners[i].z + corners[j].z) / 2;
-    const pulseGeo = new THREE.SphereGeometry(0.15, 6, 6);
-    const pulseMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7 });
-    const pulse = new THREE.Mesh(pulseGeo, pulseMat);
-    pulse.position.set(midX, 0.15, midZ);
-    pulse.userData = { baseY: 0.15, phase: i * Math.PI / 2 };
-    lineGroup.add(pulse);
-  }
-  fenceGroup.add(lineGroup);
-
-  scene.add(fenceGroup);
-  fences[building.label] = { group: fenceGroup, pillars, area, lines: lineGroup, corners, building };
-  return fenceGroup;
+  // 围栏至少覆盖建筑 + 0.3，多出的空间由中点决定
+  return {
+    hw: Math.max(building.width / 2 + 0.3, hw),
+    hd: Math.max(building.depth / 2 + 0.3, hd)
+  };
 }
 
-function getFenceColor(ratio) {
-  if (ratio < 0.6) return FENCE_COLORS.low;
-  if (ratio < 0.85) return FENCE_COLORS.medium;
-  return FENCE_COLORS.high;
+function createFence(building, bldGroup) {
+  const { hw, hd } = calcSafeFenceSize(building);
+
+  // 地面区域（密度着色，较高不透明度）
+  const areaGeo = new THREE.PlaneGeometry(hw * 2, hd * 2);
+  const areaMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.5, depthWrite: false });
+  const area = new THREE.Mesh(areaGeo, areaMat);
+  area.rotation.x = -Math.PI / 2;
+  area.position.set(building.x, 0.06, building.z);
+  area.renderOrder = 1;
+  area.userData = { hw, hd };
+
+  // 粗边框线（4条边，高亮冰蓝）
+  const borderGroup = new THREE.Group();
+  const bColor = 0x38bdf8;
+  const halfW = hw, halfD = hd;
+  const bY = 0.09;
+  const lineW = 0.22; // 边框宽度
+
+  function makeLine(x1, z1, x2, z2) {
+    const dx = x2 - x1, dz = z2 - z1;
+    const len = Math.sqrt(dx * dx + dz * dz);
+    const geo = new THREE.PlaneGeometry(len, lineW);
+    const mat = new THREE.MeshBasicMaterial({ color: bColor, side: THREE.DoubleSide, transparent: true, opacity: 0.9, depthTest: true, depthWrite: false });
+    const line = new THREE.Mesh(geo, mat);
+    line.rotation.x = -Math.PI / 2;
+    line.position.set((x1 + x2) / 2, bY, (z1 + z2) / 2);
+    line.rotation.z = Math.atan2(dz, dx);
+    line.renderOrder = 2;
+    line.userData = { baseY: bY, phase: Math.random() * Math.PI * 2 };
+    return line;
+  }
+
+  borderGroup.add(makeLine(-halfW, -halfD, halfW, -halfD));
+  borderGroup.add(makeLine(halfW, -halfD, halfW, halfD));
+  borderGroup.add(makeLine(halfW, halfD, -halfW, halfD));
+  borderGroup.add(makeLine(-halfW, halfD, -halfW, -halfD));
+
+  // 四角发光柱
+  const postGeo = new THREE.CylinderGeometry(0.18, 0.18, 3, 6);
+  const postMat = new THREE.MeshBasicMaterial({ color: 0x60d0ff });
+  [[-halfW, -halfD], [halfW, -halfD], [halfW, halfD], [-halfW, halfD]].forEach(([px, pz]) => {
+    const post = new THREE.Mesh(postGeo, postMat);
+    post.position.set(px, 0.8, pz);
+    post.renderOrder = 3;
+    borderGroup.add(post);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), new THREE.MeshBasicMaterial({ color: 0xa0e8ff }));
+    ball.position.set(px, 2.5, pz);
+    ball.renderOrder = 3;
+    borderGroup.add(ball);
+  });
+
+  borderGroup.position.set(building.x, 0, building.z);
+  scene.add(area);
+  scene.add(borderGroup);
+  fences[building.label] = { area, border: borderGroup, building };
+}
+
+// 围栏颜色表
+const FENCE_COLOR_MAP = [
+  { max: 0.3, color: 0x22c55e },  // 绿
+  { max: 0.5, color: 0x84cc16 },  // 黄绿
+  { max: 0.65, color: 0xeab308 }, // 黄
+  { max: 0.8, color: 0xf97316 },  // 橙
+  { max: 1.0, color: 0xef4444 },  // 红
+];
+
+function getDensityColor(ratio) {
+  for (const entry of FENCE_COLOR_MAP) {
+    if (ratio <= entry.max) return entry.color;
+  }
+  return 0xef4444;
 }
 
 function updateFenceHeatmap(label, ratio) {
   const fence = fences[label];
-  if (!fence) return;
-  const fc = getFenceColor(ratio);
-  fence.area.material.color.set(fc.main);
-  fence.area.material.opacity = fc.alpha;
-  fence.pillars.forEach(p => {
-    p.material.color.set(fc.main);
-    p.material.emissive.set(fc.glow);
-  });
-  fence.lines.children.forEach(c => {
-    if (c.material && c.material.color) c.material.color.set(fc.main);
-  });
+  if (!fence || !fence.area) return;
+  fence.area.material.color.set(getDensityColor(ratio));
+  fence.area.material.opacity = 0.25 + ratio * 0.3;
 }
 
 // ── 数据平滑系统 (Lerp) ──
@@ -1968,7 +2191,7 @@ buildingDefs.forEach(b => {
 });
 
 function lerpData(dt) {
-  const speed = Math.min(1, dt * 2.5);
+  const speed = Math.min(1, dt * 1.5); // 更平滑的过渡速度
   buildingDefs.forEach(b => {
     const s = smoothState[b.label];
     s.density.current += (s.density.target - s.density.current) * speed;
@@ -1978,20 +2201,101 @@ function lerpData(dt) {
   });
 }
 
-// 每5秒微调目标值
+// ── 建筑邻接关系（基于实际空间位置）──
+const buildingAdjacency = {
+  '冰晶城堡': ['冰雪宫殿', '北极光塔', '冰雪演艺厅', '游客中心'],
+  '冰雪宫殿': ['冰晶城堡', '极速冰滑梯', '游客中心', '北入口'],
+  '极速冰滑梯': ['冰雪宫殿', '冰酒吧', '冰晶宝塔'],
+  '梦幻雪圈': ['北入口', '北极光塔', '望雪塔'],
+  '望雪塔': ['梦幻雪圈', '北极光塔', '冰晶宝塔'],
+  '北入口': ['冰雪宫殿', '梦幻雪圈', '冰雕花园', '北极光塔'],
+  '冰酒吧': ['极速冰滑梯', '南入口', '许愿塔'],
+  '观景塔': ['冰雕花园', '迷你滑道', '游客中心'],
+  '冰晶宝塔': ['望雪塔', '极速冰滑梯', '许愿塔'],
+  '冰雕花园': ['北入口', '观景塔', '北极光塔'],
+  '北极光塔': ['冰晶城堡', '梦幻雪圈', '冰雕花园', '冰雪演艺厅'],
+  '冰雪演艺厅': ['冰晶城堡', '北极光塔', '游客中心'],
+  '游客中心': ['冰晶城堡', '冰雪宫殿', '冰雪演艺厅', '观景塔', '南入口'],
+  '许愿塔': ['冰晶宝塔', '冰酒吧', '迷你滑道'],
+  '迷你滑道': ['许愿塔', '观景塔', '南入口'],
+  '南入口': ['游客中心', '冰酒吧', '迷你滑道'],
+};
+
+// 每5秒：基于邻接关系的人员流动 + 园区整体进出
 let dataTicker = 0;
+let _lastTotalVisitors = 0;
 function tickDataTargets() {
   dataTicker++;
+  const totalBefore = buildingDefs.reduce((s, b) => s + b.density, 0);
+
+  // 1. 邻近建筑人员流动（每次选3-5对建筑）
+  const flowPairs = [];
+  const allLabels = buildingDefs.map(b => b.label);
+  for (let i = 0; i < 5; i++) {
+    const src = allLabels[Math.floor(Math.random() * allLabels.length)];
+    const neighbors = buildingAdjacency[src] || [];
+    if (neighbors.length > 0) {
+      const dst = neighbors[Math.floor(Math.random() * neighbors.length)];
+      flowPairs.push([src, dst]);
+    }
+  }
+  flowPairs.forEach(([src, dst]) => {
+    const sA = smoothState[src], sB = smoothState[dst];
+    if (!sA || !sB) return;
+    const transfer = Math.round(Math.random() * 15 + 3); // 3-18人转移
+    if (sA.density.target > transfer) {
+      sA.density.target -= transfer;
+      sB.density.target += transfer;
+    }
+  });
+
+  // 2. 园区整体进出（净流入/流出）
+  const netFlow = Math.round((Math.random() - 0.48) * 30); // -14~+15 偏正
+  if (netFlow > 0) {
+    // 流入：优先分配到密度低的建筑
+    const sorted = [...buildingDefs].sort((a, b) => {
+      const ca = a.width * a.depth * 12, cb = b.width * b.depth * 12;
+      return (smoothState[a.label].density.target / ca) - (smoothState[b.label].density.target / cb);
+    });
+    let remaining = netFlow;
+    for (let i = 0; i < Math.min(3, sorted.length) && remaining > 0; i++) {
+      const add = Math.min(remaining, Math.round(Math.random() * 8 + 2));
+      smoothState[sorted[i].label].density.target += add;
+      remaining -= add;
+    }
+  } else if (netFlow < 0) {
+    // 流出：从密度高的建筑减少
+    const sorted = [...buildingDefs].sort((a, b) => {
+      const ca = a.width * a.depth * 12, cb = b.width * b.depth * 12;
+      return (smoothState[b.label].density.target / cb) - (smoothState[a.label].density.target / ca);
+    });
+    let remaining = -netFlow;
+    for (let i = 0; i < Math.min(3, sorted.length) && remaining > 0; i++) {
+      const sub = Math.min(remaining, Math.round(Math.random() * 8 + 2));
+      const s = smoothState[sorted[i].label];
+      s.density.target = Math.max(10, s.density.target - sub);
+      remaining -= sub;
+    }
+  }
+
+  // 3. 确保每栋建筑在合理范围内
   buildingDefs.forEach(b => {
     const s = smoothState[b.label];
     const capacity = b.width * b.depth * 12;
-    // 客流微调
-    const drift = (Math.random() - 0.5) * capacity * 0.08;
-    s.density.target = Math.max(capacity * 0.15, Math.min(capacity * 0.95, s.density.target + drift));
-    // 排队从密度推导: ratio越高排队越长
+    s.density.target = Math.max(capacity * 0.08, Math.min(capacity * 0.92, s.density.target));
     const ratio = s.density.target / capacity;
-    s.queue.target = Math.round(ratio * 45 + Math.random() * 5);
+    s.queue.target = Math.round(ratio * 45);
   });
+
+  // 4. 记录总量变化
+  const totalAfter = buildingDefs.reduce((s, b) => s + smoothState[b.label].density.target, 0);
+  _lastTotalVisitors = totalAfter;
+
+  // 更新 dataState（与建筑密度保持一致）
+  dataState.currentVisitors = totalAfter;
+  dataState.entryRate = Math.round((totalAfter - totalBefore) / 5 * 60); // 人/分钟
+  dataState.entryRate = Math.max(-80, Math.min(200, dataState.entryRate));
+  dataState.totalToday += Math.max(0, Math.round((totalAfter - totalBefore) * 0.6 + 25));
 }
 
 // ── WebSocket 实时数据 ──
@@ -2076,6 +2380,46 @@ function openDetail(building, bldGroup) {
   document.getElementById('dt-safety').textContent = safetyLevel;
   document.getElementById('dt-suggest').textContent = ratio > 0.85 ? '建议限流分流' : ratio > 0.6 ? '关注排队状况' : '正常运营';
 
+  // ── AI预测 vs 实际对比 ──
+  const currentWeatherWf = weatherFactors[dataState.weatherType] || 0.95;
+  const peakMod = (new Date().getHours() >= 10 && new Date().getHours() <= 20) ? 1.15 : 0.85;
+  const aiPredictedDensity = Math.round(building.density * currentWeatherWf * peakMod * (0.88 + Math.random() * 0.08));
+  const aiPredictedRatio = Math.min(1, aiPredictedDensity / capacity);
+  const aiPredictedQueue = Math.round(aiPredictedRatio * 45);
+  const aiPredictedToday = Math.round(dataState.totalToday * (building.density / Math.max(1, dataState.currentVisitors)) * (0.9 + Math.random() * 0.15));
+
+  // 当前人数对比
+  document.getElementById('dt-ai-count').textContent = aiPredictedDensity + '人';
+  document.getElementById('dt-actual-count').textContent = Math.round(building.density) + '人';
+  const devCount = Math.round((building.density - aiPredictedDensity) / Math.max(1, aiPredictedDensity) * 100);
+  const devCountEl = document.getElementById('dt-dev-count');
+  devCountEl.textContent = (devCount >= 0 ? '+' : '') + devCount + '%';
+  devCountEl.className = Math.abs(devCount) <= 10 ? 'dev-ok' : Math.abs(devCount) <= 25 ? 'dev-warn' : 'dev-bad';
+
+  // 满载率对比
+  document.getElementById('dt-ai-ratio').textContent = Math.round(aiPredictedRatio * 100) + '%';
+  document.getElementById('dt-actual-ratio').textContent = Math.round(ratio * 100) + '%';
+  const devRatio = Math.round((ratio - aiPredictedRatio) * 100);
+  const devRatioEl = document.getElementById('dt-dev-ratio');
+  devRatioEl.textContent = (devRatio >= 0 ? '+' : '') + devRatio + '%';
+  devRatioEl.className = Math.abs(devRatio) <= 10 ? 'dev-ok' : Math.abs(devRatio) <= 25 ? 'dev-warn' : 'dev-bad';
+
+  // 排队时间对比
+  document.getElementById('dt-ai-queue').textContent = aiPredictedQueue + '分钟';
+  document.getElementById('dt-actual-queue').textContent = queueMins + '分钟';
+  const devQueue = Math.round((queueMins - aiPredictedQueue) / Math.max(1, aiPredictedQueue) * 100);
+  const devQueueEl = document.getElementById('dt-dev-queue');
+  devQueueEl.textContent = (devQueue >= 0 ? '+' : '') + devQueue + '%';
+  devQueueEl.className = Math.abs(devQueue) <= 15 ? 'dev-ok' : Math.abs(devQueue) <= 30 ? 'dev-warn' : 'dev-bad';
+
+  // 今日累计对比
+  document.getElementById('dt-ai-today').textContent = aiPredictedToday + '人';
+  document.getElementById('dt-actual-today').textContent = Math.round(building.density * 0.7) + '人';
+  const devToday = Math.round((building.density * 0.7 - aiPredictedToday) / Math.max(1, aiPredictedToday) * 100);
+  const devTodayEl = document.getElementById('dt-dev-today');
+  devTodayEl.textContent = (devToday >= 0 ? '+' : '') + devToday + '%';
+  devTodayEl.className = Math.abs(devToday) <= 12 ? 'dev-ok' : Math.abs(devToday) <= 28 ? 'dev-warn' : 'dev-bad';
+
   // 预警按钮
   const btnWarn = document.getElementById('dt-btn-warn');
   const btnEvac = document.getElementById('dt-btn-evac');
@@ -2118,8 +2462,265 @@ function closeDetail() {
   document.getElementById('detail-modal').classList.remove('show');
   detailBuilding = null;
   if (detailChart) { detailChart.dispose(); detailChart = null; }
+  if (echartsInstances['dt-chart']) { delete echartsInstances['dt-chart']; }
 }
 window.closeDetail = closeDetail;
+window.openDetail = openDetail;
+window.buildingDefs = buildingDefs;
+
+// ── 监控大屏（Three.js 3D视角）──
+function openMonitorScreen(cameraName) {
+  const bldName = cameraBuildingMap[cameraName] || cameraName;
+  const bld = buildingDefs.find(b => b.label === bldName);
+  if (!bld || !bld._group) return;
+
+  // 先关闭旧的大屏
+  closeMonitor();
+
+  const modal = document.getElementById('monitor-modal');
+  document.getElementById('monitor-title').textContent = '📍 ' + cameraName + ' — 实时监控大屏 (' + bld.label + ')';
+  modal.classList.add('show');
+
+  const container = document.getElementById('monitor-canvas');
+  container.innerHTML = '';
+
+  // ── 独立 Three.js 场景 ──
+  const mScene = new THREE.Scene();
+  mScene.background = new THREE.Color(0x030d1f);
+  mScene.fog = new THREE.Fog(0x030d1f, 6, 22);
+
+  const mCamera = new THREE.PerspectiveCamera(45, 960 / 480, 0.5, 50);
+  mCamera.position.set(bld.width * 1.6, bld.height * 0.55, bld.width * 1.6);
+  mCamera.lookAt(0, bld.height * 0.3, 0);
+
+  const mRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  mRenderer.setSize(960, 480);
+  mRenderer.setPixelRatio(1);
+  mRenderer.shadowMap.enabled = true;
+  container.appendChild(mRenderer.domElement);
+
+  // 灯光
+  mScene.add(new THREE.AmbientLight(0x334466, 1.0));
+  const dirLight = new THREE.DirectionalLight(0xaaccff, 1.2);
+  dirLight.position.set(3, 8, 2);
+  mScene.add(dirLight);
+  const hemiLight = new THREE.HemisphereLight(0x8899cc, 0x223344, 0.6);
+  mScene.add(hemiLight);
+
+  // 克隆建筑 3D 模型
+  const bldClone = bld._group.clone(true);
+  bldClone.position.set(0, 0, 0);
+  mScene.add(bldClone);
+
+  // 地面
+  const groundGeo = new THREE.PlaneGeometry(18, 18);
+  const groundMat = new THREE.MeshBasicMaterial({ color: 0x1a2a3a, side: THREE.DoubleSide, depthWrite: false });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.05;
+  mScene.add(ground);
+
+  // 雪粒子
+  const snowGeo = new THREE.BufferGeometry();
+  const snowPos = new Float32Array(200 * 3);
+  for (let i = 0; i < 200; i++) {
+    snowPos[i * 3] = (Math.random() - 0.5) * 16;
+    snowPos[i * 3 + 1] = Math.random() * 10;
+    snowPos[i * 3 + 2] = (Math.random() - 0.5) * 16;
+  }
+  snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+  const snowMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6, depthWrite: false });
+  const snow = new THREE.Points(snowGeo, snowMat);
+  mScene.add(snow);
+
+  // ── 人员粒子系统 ──
+  const people = [];
+  const personGeo = new THREE.CapsuleGeometry(0.1, 0.25, 4, 8);
+  let displayedCount = bld.density;
+  const edgeDist = 5; // 边缘距离
+
+  // 存储数据
+  modal._mData = { mScene, mCamera, mRenderer, bldClone, people, displayedCount, bld, personGeo, snow };
+
+  let lastTime = performance.now();
+  function monitorLoop() {
+    if (!modal.classList.contains('show')) { cleanupMonitor(); return; }
+    requestAnimationFrame(monitorLoop);
+
+    const now = performance.now();
+    const delta = Math.min(0.1, (now - lastTime) / 1000);
+    lastTime = now;
+    const d = modal._mData;
+    if (!d) return;
+
+    const targetDensity = d.bld.density;
+    const diff = targetDensity - d.displayedCount;
+
+    // ── 入场：在边缘生成红色小人，走向建筑 ──
+    if (diff > 0 && d.people.length < 150) {
+      const spawnCount = Math.min(Math.ceil(diff * 0.15), 3);
+      for (let s = 0; s < spawnCount; s++) {
+        const angle = Math.random() * Math.PI * 2;
+        const px = Math.cos(angle) * edgeDist;
+        const pz = Math.sin(angle) * edgeDist;
+        const personMat = new THREE.MeshBasicMaterial({ color: 0xff3333 }); // 红色=入口
+        const person = new THREE.Mesh(personGeo, personMat);
+        person.position.set(px, 0.35, pz);
+        person.userData = {
+          phase: 'entering',
+          startX: px, startZ: pz,
+          targetX: (Math.random() - 0.5) * bld.width * 0.5,
+          targetZ: (Math.random() - 0.5) * bld.depth * 0.5,
+          progress: 0, speed: 1.2 + Math.random() * 1.8,
+          wanderAngle: Math.random() * Math.PI * 2,
+          wanderTimer: 0
+        };
+        d.mScene.add(person);
+        d.people.push(person);
+        d.displayedCount++;
+      }
+    }
+
+    // ── 离场：已有建筑旁的人走向边缘 → 红色 → 删除 ──
+    if (diff < 0) {
+      const despawnCount = Math.min(Math.ceil(Math.abs(diff) * 0.15), 3);
+      for (let s = 0; s < despawnCount; s++) {
+        // 找一个在建筑附近的空闲人员（非entering, 非exiting）
+        const candidates = d.people.filter(p => p.userData.phase === 'idle');
+        if (candidates.length > 0) {
+          const p = candidates[Math.floor(Math.random() * candidates.length)];
+          const angle = Math.random() * Math.PI * 2;
+          p.userData.phase = 'exiting';
+          p.userData.targetX = Math.cos(angle) * (edgeDist + 1);
+          p.userData.targetZ = Math.sin(angle) * (edgeDist + 1);
+          p.userData.progress = 0;
+          p.userData.speed = 1.2 + Math.random() * 1.8;
+          p.userData.exitStartX = p.position.x;
+          p.userData.exitStartZ = p.position.z;
+          p.material = new THREE.MeshBasicMaterial({ color: 0xff6633 }); // 开始变红
+        }
+      }
+    }
+
+    // ── 动画所有人 ──
+    for (let i = d.people.length - 1; i >= 0; i--) {
+      const p = d.people[i];
+      const ud = p.userData;
+
+      if (ud.phase === 'entering') {
+        // 从边缘向建筑移动
+        const tx = ud.targetX, tz = ud.targetZ;
+        const dx = tx - p.position.x, dz = tz - p.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < 0.25) {
+          ud.phase = 'idle';
+          p.material = new THREE.MeshBasicMaterial({ color: 0x88ccff }); // 蓝色=已入场
+          ud.wanderTimer = Math.random() * 2;
+        } else {
+          p.position.x += (dx / dist) * ud.speed * delta;
+          p.position.z += (dz / dist) * ud.speed * delta;
+          // 从红色渐变到蓝色
+          const edgeDistNow = Math.sqrt(p.position.x * p.position.x + p.position.z * p.position.z);
+          const t = Math.min(1, 1 - edgeDistNow / edgeDist);
+          const r = 1 - t * 0.6, g = 0.2 + t * 0.6, b = 0.2 + t * 0.8;
+          p.material.color.setRGB(r, g, b);
+        }
+      } else if (ud.phase === 'exiting') {
+        // 从建筑向边缘移动
+        const tx = ud.targetX, tz = ud.targetZ;
+        const dx = tx - p.position.x, dz = tz - p.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < 0.3 || Math.abs(p.position.x) > edgeDist || Math.abs(p.position.z) > edgeDist) {
+          // 到达边缘，删除
+          d.mScene.remove(p);
+          d.people.splice(i, 1);
+          d.displayedCount--;
+          continue;
+        }
+        p.position.x += (dx / dist) * ud.speed * delta;
+        p.position.z += (dz / dist) * ud.speed * delta;
+        // 逐渐变红
+        const edgeDistNow = Math.sqrt(p.position.x * p.position.x + p.position.z * p.position.z);
+        const t = Math.min(1, edgeDistNow / edgeDist);
+        p.material.color.setRGB(0.5 + t * 0.5, 0.5 - t * 0.3, 1 - t * 0.7);
+      } else {
+        // idle：在建筑周围漫步
+        ud.wanderTimer -= delta;
+        if (ud.wanderTimer <= 0) {
+          ud.wanderAngle = Math.random() * Math.PI * 2;
+          ud.wanderTimer = 1.5 + Math.random() * 3;
+          ud.targetX = (Math.random() - 0.5) * bld.width * 0.7;
+          ud.targetZ = (Math.random() - 0.5) * bld.depth * 0.7;
+          ud.speed = 0.2 + Math.random() * 0.6;
+        }
+        const dx = ud.targetX - p.position.x;
+        const dz = ud.targetZ - p.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist > 0.1) {
+          p.position.x += (dx / dist) * ud.speed * delta;
+          p.position.z += (dz / dist) * ud.speed * delta;
+        }
+      }
+      p.position.y = 0.35 + Math.sin(now * 0.005 + i * 1.7) * 0.03;
+    }
+
+    // 建筑缓慢旋转
+    bldClone.rotation.y += delta * 0.2;
+
+    // 雪向下飘
+    const sPos = snow.geometry.attributes.position.array;
+    for (let i = 0; i < 200; i++) {
+      sPos[i * 3 + 1] -= delta * 0.4;
+      if (sPos[i * 3 + 1] < 0) { sPos[i * 3 + 1] = 10; sPos[i * 3] = (Math.random() - 0.5) * 16; sPos[i * 3 + 2] = (Math.random() - 0.5) * 16; }
+      sPos[i * 3] += Math.sin(now * 2 + i) * delta * 0.15;
+    }
+    snow.geometry.attributes.position.needsUpdate = true;
+
+    mRenderer.render(mScene, mCamera);
+  }
+
+  function cleanupMonitor() {
+    const md = modal._mData;
+    if (md) {
+      md.mRenderer.dispose();
+      if (md.mScene) {
+        md.mScene.traverse(obj => {
+          if (obj.geometry && obj.geometry !== personGeo) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+            else obj.material.dispose();
+          }
+        });
+      }
+      modal._mData = null;
+    }
+    container.innerHTML = '';
+  }
+
+  requestAnimationFrame(monitorLoop);
+}
+
+function closeMonitor() {
+  const modal = document.getElementById('monitor-modal');
+  const container = document.getElementById('monitor-canvas');
+  const md = modal._mData;
+  if (md) {
+    md.mRenderer.dispose();
+    if (md.mScene) {
+      md.mScene.traverse(obj => {
+        if (obj.geometry && obj.geometry !== md.personGeo) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+    }
+    modal._mData = null;
+  }
+  container.innerHTML = '';
+  modal.classList.remove('show');
+}
+window.closeMonitor = closeMonitor;
 
 function focusBuilding() {
   if (!detailBuilding) return;
@@ -2469,7 +3070,7 @@ let revTrendChart = null;
 
 function switchRevTab(mode, el) {
   revTabMode = mode;
-  document.querySelectorAll('#revenue-panel .rev-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#tab-revenue .rev-tab').forEach(t => t.classList.remove('active'));
   if (el) el.classList.add('active');
   document.getElementById('rev-summary').style.display = mode === 'summary' ? '' : 'none';
   document.getElementById('rev-detail').style.display = mode === 'detail' ? '' : 'none';
@@ -2769,14 +3370,12 @@ function getQueueFromDensity(building) {
 
 function updateBubblesWithQueue() {
   bubbles.forEach(bub => {
-    const qMins = getQueueFromDensity(bub.building);
     const ratio = bub.building.density / Math.max(1, bub.building.width * bub.building.depth * 12);
-    let qColor = '#22c55e';
-    let qLabel = '排队短';
-    if (ratio > 0.85) { qColor = '#ef4444'; qLabel = '排队久'; }
-    else if (ratio > 0.6) { qColor = '#f59e0b'; qLabel = '排队中'; }
-
-    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span><br><span class="bubble-queue" style="color:${qColor}">🕐${qLabel} ~${qMins}分钟</span>`;
+    const qMins = Math.round(ratio * 45);
+    let qColor = 'var(--text-secondary)';
+    if (ratio > 0.85) qColor = '#ef4444';
+    else if (ratio > 0.6) qColor = '#f59e0b';
+    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人 <span style="font-size:9px;color:${qColor}">🕐${qMins}min</span></span>`;
   });
 }
 
@@ -3015,7 +3614,7 @@ function periodicUpdate() {
 
 // ── 建筑点击 → 钻取详情 ──
 window.addEventListener('click', (e) => {
-  if (e.target.closest('#detail-modal') || e.target.closest('#solution-modal')) return;
+  if (e.target.closest('#detail-modal') || e.target.closest('#solution-modal') || e.target.closest('#monitor-modal')) return;
   const mx = (e.clientX / window.innerWidth) * 2 - 1;
   const my = -(e.clientY / window.innerHeight) * 2 + 1;
   const rc = new THREE.Raycaster();

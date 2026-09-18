@@ -16,6 +16,7 @@ Thumbs.db
 # Temp files
 ~$*.pptx
 ~$*.docx
+~$*.xlsx
 
 # Merge temp files
 css_insert.txt
