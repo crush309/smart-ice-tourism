@@ -2032,8 +2032,8 @@ function connectWebSocket() {
         }
       } catch(e) {}
     };
-    ws.onclose = () => { wsConnected = false; console.log('WebSocket 断开, 3秒后重连...'); setTimeout(connectWebSocket, 3000); };
-    ws.onerror = () => { useWebSocket = false; };
+    ws.onclose = () => { wsConnected = false; if (useWebSocket) { setTimeout(connectWebSocket, 10000); } };
+    ws.onerror = () => { useWebSocket = false; wsConnected = false; };
   } catch(e) { useWebSocket = false; }
 }
 
@@ -2139,7 +2139,7 @@ function predictNext7Days(baseVisitors) {
   const weathers = ['晴', '多云', '小雪', '晴', '阴', '晴', '多云'];
   const temps = [-8, -12, -15, -6, -10, -5, -11];
   for (let i = 0; i < 7; i++) {
-    const wf = weathersFactors[weathers[i]] || 0.95;
+    const wf = weatherFactors[weathers[i]] || 0.95;
     const trend = 0.92 + Math.random() * 0.16;
     const dayBase = i === 0 ? baseVisitors : days[i-1].value;
     const predicted = Math.round(dayBase * trend * wf);
