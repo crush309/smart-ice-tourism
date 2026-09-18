@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多业态融合智慧文旅管控系统 - 冰雪大世界</title>
+<style>
+:root {
+  --bg-deep: #060d1a;
+  --bg-panel: rgba(8, 20, 40, 0.85);
+  --border-glow: rgba(80, 180, 240, 0.25);
+  --text-primary: #d8eafa;
+  --text-secondary: #8ab4d8;
+  --text-muted: #4a6a8a;
+  --accent-ice: #38bdf8;
+  --accent-glow: #00d4ff;
+  --accent-deep: #1c5cab;
+  --status-online: #22c55e;
+  --status-warn: #f59e0b;
+  --status-offline: #ef4444;
+  font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-deep);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+#three-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+
+.bubble-label {
+  background: rgba(5, 25, 55, 0.88);
+  border: 1px solid var(--accent-ice);
+  border-radius: 14px;
+  padding: 4px 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+  backdrop-filter: blur(4px);
+}
+.bubble-label .val { color: var(--accent-glow); font-variant-numeric: tabular-nums; }
+.bubble-label .unit { color: var(--text-secondary); font-size: 10px; margin-left: 2px; }
+
+/* Top Bar */
+#top-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  height: 56px;
+  background: linear-gradient(180deg, rgba(6,18,40,0.95) 0%, rgba(6,18,40,0.7) 100%);
+  border-bottom: 1px solid var(--border-glow);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+}
+#top-bar h1 {
+  font-size: 22px; font-weight: 700;
+  background: linear-gradient(90deg, #7bc8f0, #38bdf8, #a5f3fc);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 3px;
+}
+#top-bar::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+  opacity: 0.6;
+}
+
+/* Panels */
+.panel {
+  position: fixed; z-index: 10;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  padding: 16px;
+  box-shadow: 0 0 30px rgba(0, 120, 200, 0.08);
+}
+.panel::before {
+  content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-ice), transparent);
+  opacity: 0.5;
+}
+.panel-title {
+  font-size: 14px; font-weight: 700; color: var(--accent-ice);
+  margin-bottom: 12px; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 6px;
+}
+.panel-title::before {
+  content: ''; display: inline-block; width: 4px; height: 14px;
+  background: var(--accent-ice); border-radius: 2px;
+  box-shadow: 0 0 8px var(--accent-ice);
+}
+
+#left-panel {
+  top: 72px; left: 16px;
+  width: 260px; height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+#right-panel {
+  top: 72px; right: 16px;
+  width: 260px; height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* Stat tiles */
+.stat-tile {
+  background: rgba(10, 30, 60, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 10px; padding: 12px; margin-bottom: 10px;
+}
+.stat-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+.stat-value {
+  font-size: 28px; font-weight: 700; color: var(--text-primary);
+  font-variant-numeric: proportional-nums;
+}
+.stat-delta {
+  font-size: 11px; margin-top: 2px;
+}
+.stat-delta.up { color: var(--status-online); }
+.stat-delta.down { color: var(--status-warn); }
+
+#sparkline-canvas {
+  width: 100%; height: 80px;
+  margin-top: 8px; border-radius: 6px;
+  background: rgba(5, 20, 45, 0.4);
+  display: block;
+}
+
+/* Right panel list */
+.zone-list { list-style: none; }
+.zone-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(10, 30, 60, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.1);
+  transition: border-color 0.3s;
+}
+.zone-item:hover { border-color: var(--accent-ice); }
+.zone-name { font-size: 13px; font-weight: 600; }
+.zone-status {
+  display: flex; align-items: center; gap: 6px; font-size: 11px;
+  color: var(--text-secondary);
+}
+.zone-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  box-shadow: 0 0 6px currentColor;
+}
+.zone-dot.online { background: var(--status-online); color: var(--status-online); }
+.zone-dot.busy { background: var(--status-warn); color: var(--status-warn); }
+
+.facility-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 12px;
+  border-bottom: 1px solid rgba(56,189,248,0.06);
+}
+.facility-row:last-child { border-bottom: none; }
+.facility-status { font-weight: 600; }
+.facility-status.on { color: var(--status-online); }
+.facility-status.off { color: var(--status-offline); }
+
+/* Camera Feed */
+.camera-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px;
+}
+.camera-card {
+  position: relative;
+  background: rgba(5, 15, 35, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 8px; overflow: hidden;
+}
+.camera-card canvas { width: 100%; height: 60px; display: block; }
+.camera-label {
+  padding: 4px 6px; font-size: 10px; color: var(--text-secondary);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.camera-live {
+  display: flex; align-items: center; gap: 3px; color: var(--status-online); font-size: 10px;
+}
+.camera-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--status-online); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Review Feed */
+.review-item {
+  padding: 8px 10px; margin-bottom: 5px;
+  background: rgba(10, 30, 60, 0.4);
+  border-left: 3px solid var(--accent-ice);
+  border-radius: 0 6px 6px 0;
+  font-size: 11px; line-height: 1.5;
+}
+.review-item.negative { border-left-color: var(--status-offline); }
+.review-item.positive { border-left-color: var(--status-online); }
+.review-text { color: var(--text-primary); margin-bottom: 3px; }
+.review-meta { font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between; }
+.review-sentiment { font-weight: 600; }
+.review-sentiment.pos { color: var(--status-online); }
+.review-sentiment.neg { color: var(--status-offline); }
+.review-sentiment.neutral { color: var(--status-warn); }
+
+/* Sentiment Summary */
+.sentiment-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+.sentiment-pos { background: var(--status-online); }
+.sentiment-neu { background: var(--status-warn); }
+.sentiment-neg { background: var(--status-offline); }
+
+/* Inspection Panel */
+#inspection-panel {
+  position: fixed; bottom: 56px; left: 16px; z-index: 10;
+  width: 260px;
+}
+.inspect-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; margin-bottom: 4px;
+  border-radius: 6px;
+  background: rgba(10, 30, 60, 0.4);
+  font-size: 11px;
+}
+.inspect-name { color: var(--text-primary); }
+.inspect-status {
+  padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+}
+.inspect-status.done { background: rgba(34,197,94,0.15); color: var(--status-online); }
+.inspect-status.pending { background: rgba(245,158,11,0.15); color: var(--status-warn); }
+.inspect-status.issue { background: rgba(239,68,68,0.15); color: var(--status-offline); }
+
+/* Tab buttons inside panels */
+.panel-tabs {
+  display: flex; gap: 4px; margin-bottom: 10px;
+}
+.panel-tab {
+  padding: 4px 10px; border-radius: 6px; font-size: 11px;
+  cursor: pointer; border: 1px solid rgba(56,189,248,0.2);
+  background: rgba(10,30,60,0.3); color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.panel-tab.active {
+  background: rgba(56,189,248,0.15); color: var(--accent-glow);
+  border-color: var(--accent-ice);
+}
+
+/* Right panel wider */
+#right-panel { width: 280px; }
+
+/* Scrollbar */
+.panel::-webkit-scrollbar { width: 4px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+.panel::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.2); border-radius: 2px; }
+
+/* Bottom Bar */
+#bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  height: 40px;
+  background: linear-gradient(0deg, rgba(6,18,40,0.95) 0%, rgba(6,18,40,0.7) 100%);
+  border-top: 1px solid var(--border-glow);
+  display: flex; align-items: center; justify-content: space-around;
+  font-size: 12px; color: var(--text-secondary);
+  backdrop-filter: blur(10px);
+  padding: 0 20px;
+}
+#bottom-bar span { display: flex; align-items: center; gap: 6px; }
+#bottom-bar .highlight { color: var(--accent-glow); font-weight: 600; }
+#bottom-bar .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--status-online);
+  box-shadow: 0 0 6px var(--status-online);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* Alert Panel */
+#alert-panel {
+  position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 20;
+  width: 420px; display: none;
+  background: var(--bg-panel); border: 1px solid rgba(245,158,11,0.4);
+  border-radius: 12px; padding: 14px;
+  backdrop-filter: blur(16px);
+}
+#alert-panel.show { display: block; }
+.alert-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; margin-bottom: 6px; border-radius: 8px;
+  font-size: 12px;
+  background: rgba(245,158,11,0.08); border-left: 3px solid var(--status-warn);
+}
+.alert-item.danger { background: rgba(239,68,68,0.08); border-left-color: var(--status-offline); }
+.alert-level { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.alert-level.warn { background: rgba(245,158,11,0.2); color: var(--status-warn); }
+.alert-level.danger { background: rgba(239,68,68,0.2); color: var(--status-offline); }
+
+/* 响应式 */
+@media (max-width: 900px) {
+  #left-panel, #right-panel { display: none; }
+  #top-bar h1 { font-size: 16px; letter-spacing: 1px; }
+}
+
+/* scrollbar */
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="top-bar"><h1>多业态融合智慧文旅管控系统 - 冰雪大世界</h1></div>
+
+<div id="left-panel" class="panel">
+  <div class="panel-title">实时客流数据</div>
+  <div class="stat-tile">
+    <div class="stat-label">当前在园人数</div>
+    <div class="stat-value" id="current-visitors">8,523</div>
+    <div class="stat-delta up" id="visitor-delta">↑ 5.2% 较上时段</div>
+  </div>
+  <div class="stat-tile">
+    <div class="stat-label">今日累计入园</div>
+    <div class="stat-value" id="total-today">32,180</div>
+    <div class="stat-delta up">↑ 12.8% 较昨日</div>
+  </div>
+  <canvas id="sparkline-canvas" width="456" height="160"></canvas>
+  <div class="stat-tile" style="margin-top:10px;">
+    <div class="stat-label">实时入园速率</div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
+      <span style="font-size:24px;font-weight:700;color:var(--accent-glow);" id="entry-rate">186</span>
+      <span style="font-size:12px;color:var(--text-secondary);">人/分钟</span>
+    </div>
+  </div>
+  <div class="stat-tile" style="margin-top:10px;">
+    <div class="stat-label">今日预估营收</div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
+      <span style="font-size:22px;font-weight:700;color:#34d399;" id="revenue-today">386.5</span>
+      <span style="font-size:11px;color:var(--text-secondary);">万元</span>
+    </div>
+    <div class="stat-delta up" id="revenue-delta">↑ 8.3% 较昨日</div>
+  </div>
+  <div class="stat-tile" style="margin-top:10px;">
+    <div class="stat-label">游客满意度</div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
+      <span style="font-size:22px;font-weight:700;color:#fbbf24;" id="satisfaction">94.2</span>
+      <span style="font-size:11px;color:var(--text-secondary);">%</span>
+    </div>
+    <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:6px;">
+      <div id="satisfaction-bar" style="height:100%;width:94%;background:linear-gradient(90deg,#fbbf24,#34d399);border-radius:2px;transition:width 1s;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="right-panel" class="panel">
+  <div class="panel-tabs">
+    <div class="panel-tab active" onclick="switchTab('overview', this)">景区概览</div>
+    <div class="panel-tab" onclick="switchTab('camera', this)">监控画面</div>
+    <div class="panel-tab" onclick="switchTab('review', this)">网评舆情</div>
+  </div>
+
+  <!-- Tab: 景区概览 -->
+  <div id="tab-overview">
+    <div class="panel-title">景区概览</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">各功能区实时状态</div>
+    <ul class="zone-list" id="zone-list"></ul>
+    <div class="panel-title" style="margin-top:16px;">设施运行状态</div>
+    <div id="facility-list"></div>
+  </div>
+
+  <!-- Tab: 监控画面 -->
+  <div id="tab-camera" style="display:none;">
+    <div class="panel-title">重点点位监控</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">📹 8路监控实时画面</div>
+    <div class="camera-grid" id="camera-grid"></div>
+  </div>
+
+  <!-- Tab: 网评舆情 -->
+  <div id="tab-review" style="display:none;">
+    <div class="panel-title">网评舆情</div>
+    <div class="sentiment-bar" id="sentiment-bar">
+      <div class="sentiment-pos" id="sent-pos" style="width:65%;"></div>
+      <div class="sentiment-neu" id="sent-neu" style="width:22%;"></div>
+      <div class="sentiment-neg" id="sent-neg" style="width:13%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:10px;">
+      <span>😊 正面 <span id="sent-pos-val">65%</span></span>
+      <span>😐 中性 <span id="sent-neu-val">22%</span></span>
+      <span>😞 负面 <span id="sent-neg-val">13%</span></span>
+    </div>
+    <div id="review-feed" style="max-height:320px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div id="bottom-bar">
+  <span id="clock">🕐 --</span>
+  <span><span class="dot"></span> 系统运行中</span>
+  <span>👥 在线: <span class="highlight" id="online-count">8,523</span></span>
+  <span>🚗 车位: <span class="highlight" id="parking-info">312/500</span></span>
+  <span>🌨 <span class="highlight" id="weather-info">-15°C 小雪</span></span>
+  <span>📡 设备在线: <span class="highlight" style="color:#22c55e;">142/148</span></span>
+  <span style="cursor:pointer;" onclick="toggleAlert()">🔔 预警: <span class="highlight" style="color:#f59e0b;" id="alert-count">2</span></span>
+</div>
+
+<!-- 巡检工作面板 -->
+<div id="inspection-panel" class="panel">
+  <div class="panel-title">🔍 日常巡检工作</div>
+  <div id="inspect-list"></div>
+</div>
+
+<!-- 预警信息面板 -->
+<div id="alert-panel">
+  <div class="panel-title" style="margin-bottom:8px;">⚠️ 实时预警信息</div>
+  <div id="alert-list"></div>
+</div>
+
+<canvas id="three-canvas"></canvas>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ── DOM refs ──
+const canvas = document.getElementById('three-canvas');
+const cssContainer = document.getElementById('css2d-container');
+const elCurrentVisitors = document.getElementById('current-visitors');
+const elVisitorDelta = document.getElementById('visitor-delta');
+const elTotalToday = document.getElementById('total-today');
+const elEntryRate = document.getElementById('entry-rate');
+const elOnlineCount = document.getElementById('online-count');
+const elClock = document.getElementById('clock');
+const elWeather = document.getElementById('weather-info');
+const sparklineCanvas = document.getElementById('sparkline-canvas');
+const zoneList = document.getElementById('zone-list');
+const facilityList = document.getElementById('facility-list');
+const ctxSpark = sparklineCanvas.getContext('2d');
+
+// ── Three.js Setup ──
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#060d1a');
+scene.fog = new THREE.FogExp2('#060d1a', 0.00025);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 500);
+camera.position.set(45, 32, 55);
+camera.lookAt(0, 0, 0);
+
+// OrbitControls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.target.set(0, 1, 0);
+controls.minDistance = 20;
+controls.maxDistance = 120;
+controls.maxPolarAngle = Math.PI * 0.55;
+controls.minPolarAngle = 0.3;
+controls.update();
+
+// CSS2D Renderer
+const css2dRenderer = new CSS2DRenderer();
+css2dRenderer.setSize(window.innerWidth, window.innerHeight);
+css2dRenderer.domElement.style.position = 'fixed';
+css2dRenderer.domElement.style.top = '0';
+css2dRenderer.domElement.style.left = '0';
+css2dRenderer.domElement.style.pointerEvents = 'none';
+css2dRenderer.domElement.style.zIndex = '3';
+document.body.appendChild(css2dRenderer.domElement);
+
+// ── Lighting ──
+const ambientLight = new THREE.AmbientLight('#1a3a5c', 1.5);
+scene.add(ambientLight);
+
+const moonLight = new THREE.DirectionalLight('#8ec8f0', 2.5);
+moonLight.position.set(30, 40, 20);
+moonLight.castShadow = true;
+moonLight.shadow.mapSize.width = 1024;
+moonLight.shadow.mapSize.height = 1024;
+moonLight.shadow.camera.near = 0.5;
+moonLight.shadow.camera.far = 200;
+moonLight.shadow.camera.left = -60;
+moonLight.shadow.camera.right = 60;
+moonLight.shadow.camera.top = 60;
+moonLight.shadow.camera.bottom = -60;
+moonLight.shadow.bias = -0.0001;
+scene.add(moonLight);
+
+const rimLight = new THREE.DirectionalLight('#38bdf8', 1.2);
+rimLight.position.set(-20, 10, -15);
+scene.add(rimLight);
+
+// ── Sky: Aurora Borealis ──
+const skyGeo = new THREE.SphereGeometry(80, 32, 32);
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 },
+    uColor1: { value: new THREE.Color('#0a1628') },
+    uColor2: { value: new THREE.Color('#1a2a4a') },
+    uAurora: { value: new THREE.Color('#00ff88') },
+  },
+  vertexShader: `
+    varying vec3 vPos;
+    void main() {
+      vPos = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vPos;
+    uniform float uTime;
+    uniform vec3 uColor1, uColor2, uAurora;
+    void main() {
+      float h = normalize(vPos).y;
+      float aurora = smoothstep(0.1, 0.35, h) * smoothstep(0.6, 0.35, h);
+      aurora *= 0.4 + 0.3 * sin(vPos.x * 0.8 + uTime * 0.3) * cos(vPos.z * 0.6 + uTime * 0.2);
+      vec3 sky = mix(uColor1, uColor2, h * 0.6);
+      sky = mix(sky, uAurora, aurora * 0.25);
+      gl_FragColor = vec4(sky, 1.0);
+    }
+  `,
+  side: THREE.BackSide, depthWrite: false,
+});
+const sky = new THREE.Mesh(skyGeo, skyMat);
+scene.add(sky);
+
+// ── Ground: Reflective Ice Platform ──
+const groundGeo = new THREE.PlaneGeometry(120, 120);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: '#0a1e38',
+  roughness: 0.28,
+  metalness: 0.55,
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.5;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Ice platform (raised center)
+const platformGeo = new THREE.CylinderGeometry(22, 23, 0.3, 48);
+const platformMat = new THREE.MeshStandardMaterial({
+  color: '#102848',
+  roughness: 0.2,
+  metalness: 0.7,
+  transparent: true, opacity: 0.85,
+});
+const platform = new THREE.Mesh(platformGeo, platformMat);
+platform.position.y = -0.55;
+platform.receiveShadow = true;
+scene.add(platform);
+
+// Ground grid (ice cracks + cyber grid)
+const gridHelper = new THREE.PolarGridHelper(50, 48, 24, 128, '#1a4068', '#0d2847');
+gridHelper.position.y = -0.48;
+scene.add(gridHelper);
+
+// Scan rings on ground
+const ringGeos = [];
+for (let i = 0; i < 4; i++) {
+  const ringGeo = new THREE.TorusGeometry(6 + i * 8, 0.06, 8, 100);
+  const ringMat = new THREE.MeshBasicMaterial({ color: '#38bdf8', transparent: true, opacity: 0.22 - i * 0.04 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = -0.33;
+  ring.userData = { baseRadius: 6 + i * 8, phase: i * 0.9 };
+  ringGeos.push(ring);
+  scene.add(ring);
+}
+
+// Walkway paths (glowing grid lines)
+function createPath(x, z, length, rotation) {
+  const pathGeo = new THREE.PlaneGeometry(1.2, length);
+  const pathMat = new THREE.MeshBasicMaterial({
+    color: '#1a4880',
+    transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false,
+  });
+  const path = new THREE.Mesh(pathGeo, pathMat);
+  path.rotation.x = -Math.PI / 2;
+  path.rotation.z = rotation || 0;
+  path.position.set(x, -0.45, z);
+  scene.add(path);
+
+  // Center glow line
+  const lineGeo = new THREE.PlaneGeometry(0.15, length);
+  const lineMat = new THREE.MeshBasicMaterial({
+    color: '#38bdf8',
+    transparent: true, opacity: 0.3, side: THREE.DoubleSide, depthWrite: false,
+  });
+  const line = new THREE.Mesh(lineGeo, lineMat);
+  line.rotation.x = -Math.PI / 2;
+  line.rotation.z = rotation || 0;
+  line.position.set(x, -0.44, z);
+  scene.add(line);
+}
+createPath(0, -2, 12, 0);       // Main path south
+createPath(0, 4, 14, 0);        // Main path north
+createPath(-5, 0, 12, Math.PI/2); // West path
+createPath(5, 0, 12, Math.PI/2);  // East path
+createPath(7, 3, 8, Math.PI/4);   // Diagonal SE
+createPath(-7, 3, 8, -Math.PI/4); // Diagonal SW
+
+// ── Building Generator ──
+function createIceMaterial(color, opacity = 0.55) {
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    roughness: 0.15,
+    metalness: 0.05,
+    transparent: true,
+    opacity,
+    depthWrite: true,
+    clearcoat: 0.3,
+    clearcoatRoughness: 0.2,
+  });
+}
+
+function addGlowEdges(mesh, group) {
+  const edgesGeo = new THREE.EdgesGeometry(mesh.geometry, 20);
+  const edgesLine = new THREE.LineSegments(
+    edgesGeo,
+    new THREE.LineBasicMaterial({ color: '#5bc0eb', transparent: true, opacity: 0.5 })
+  );
+  edgesLine.position.copy(mesh.position);
+  edgesLine.rotation.copy(mesh.rotation);
+  edgesLine.scale.copy(mesh.scale);
+  group.add(edgesLine);
+}
+
+function addLightBeam(x, y, z, h, group) {
+  const beamGeo = new THREE.CylinderGeometry(0.15, 0.5, h, 8);
+  const beamMat = new THREE.MeshBasicMaterial({ color: '#7bffff', transparent: true, opacity: 0.08, depthWrite: false });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.position.set(x, y + h/2, z);
+  group.add(beam);
+}
+
+function createBuilding(x, z, config) {
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+
+  const { type, height, width, depth, color, roofColor } = config;
+  const h = height || 5, w = width || 4, d = depth || w;
+  const mat = createIceMaterial(color || '#7ec8f0', 0.5);
+  const roofMat = createIceMaterial(roofColor || '#a0dcff', 0.4);
+  const glowMat = new THREE.MeshBasicMaterial({ color: '#7bffff', transparent: true, opacity: 0.35, depthWrite: false });
+  const accentMat = createIceMaterial('#b8f0ff', 0.35);
+
+  if (type === 'tower') {
+    // ── Stepped multi-tier tower ──
+    const nTiers = h > 10 ? 3 : 2;
+    const tierH = h / nTiers;
+    for (let i = 0; i < nTiers; i++) {
+      const tw = w - i * 0.4;
+      const td = d - i * 0.4;
+      const ty = i * tierH + tierH / 2;
+      const tier = new THREE.Mesh(new THREE.BoxGeometry(tw, tierH - 0.15, td, 3, 3, 3), mat);
+      tier.position.y = ty;
+      tier.castShadow = true; tier.receiveShadow = true;
+      group.add(tier);
+      addGlowEdges(tier, group);
+      // Ice ledge between tiers
+      if (i < nTiers - 1) {
+        const ledge = new THREE.Mesh(new THREE.CylinderGeometry(tw * 0.55, tw * 0.5, 0.25, 8), accentMat);
+        ledge.position.y = (i + 1) * tierH;
+        group.add(ledge);
+      }
+      // Corner mini-pillars
+      const halfW = tw / 2 - 0.15;
+      const halfD = td / 2 - 0.15;
+      [[halfW, halfD], [-halfW, halfD], [halfW, -halfD], [-halfW, -halfD]].forEach(([cx, cz]) => {
+        const cp = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, tierH - 0.3, 6), accentMat);
+        cp.position.set(cx, ty, cz);
+        group.add(cp);
+      });
+    }
+    // Crystal beacon
+    const beaconY = h + 0.8;
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.45, 0), new THREE.MeshBasicMaterial({ color: '#7bffff' }));
+    crystal.position.y = beaconY;
+    group.add(crystal);
+    // Glow sphere
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), new THREE.MeshBasicMaterial({ color: '#a0f0ff', transparent: true, opacity: 0.25, depthWrite: false }));
+    glow.position.y = beaconY;
+    group.add(glow);
+    addLightBeam(0, beaconY, 0, 8, group);
+    // Spire on top
+    const spire = new THREE.Mesh(new THREE.ConeGeometry(0.2, 2.5, 8), roofMat);
+    spire.position.y = beaconY + 1.5;
+    group.add(spire);
+  } else if (type === 'palace') {
+    // ── Grand palace with columns ──
+    const mainBody = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 4, 3, 4), mat);
+    mainBody.position.y = h / 2;
+    mainBody.castShadow = true; mainBody.receiveShadow = true;
+    group.add(mainBody);
+    addGlowEdges(mainBody, group);
+    // Entrance columns (front face, z+)
+    const colCount = Math.max(3, Math.floor(w / 1.6));
+    for (let i = 0; i < colCount; i++) {
+      const colX = -w / 2 + 0.4 + (i / (colCount - 1)) * (w - 0.8);
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, h * 0.75, 8), accentMat);
+      col.position.set(colX, h * 0.38, d / 2 + 0.15);
+      group.add(col);
+    }
+    // Grand roof (curved hip-and-gable style)
+    const roofGeo = new THREE.CylinderGeometry(w * 0.55, w * 0.8, 2.5, 12, 1);
+    const roof = new THREE.Mesh(roofGeo, roofMat);
+    roof.position.y = h + 1;
+    roof.castShadow = true;
+    group.add(roof);
+    addGlowEdges(roof, group);
+    // Roof ridges (4 diagonal ridges)
+    for (let a = 0; a < 4; a++) {
+      const angle = (a / 4) * Math.PI * 2 + Math.PI / 4;
+      const rx = Math.cos(angle) * w * 0.52;
+      const rz = Math.sin(angle) * d * 0.52;
+      const ridge = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 2.2, 6), roofMat);
+      ridge.position.set(rx, h + 1.3, rz);
+      ridge.rotation.z = (angle > Math.PI / 2 && angle < Math.PI * 1.5) ? -0.3 : 0.3;
+      ridge.rotation.x = (angle < Math.PI) ? -0.3 : 0.3;
+      group.add(ridge);
+    }
+    // Roof-top finial
+    const finial = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 2, 8), roofMat);
+    finial.position.y = h + 2.8;
+    group.add(finial);
+    // Side wings (smaller)
+    [-1, 1].forEach(side => {
+      const wingW = w * 0.35, wingH = h * 0.55, wingD = d * 0.85;
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(wingW, wingH, wingD, 2, 2, 2), mat);
+      wing.position.set(side * (w / 2 + wingW / 2 - 0.3), wingH / 2, 0);
+      wing.castShadow = true;
+      group.add(wing);
+      addGlowEdges(wing, group);
+      // Small wing roof
+      const wRoof = new THREE.Mesh(new THREE.ConeGeometry(wingW * 0.65, 1.2, 8), roofMat);
+      wRoof.position.set(side * (w / 2 + wingW / 2 - 0.3), wingH + 0.5, 0);
+      group.add(wRoof);
+    });
+    // Steps at entrance
+    for (let s = 0; s < 3; s++) {
+      const step = new THREE.Mesh(new THREE.BoxGeometry(w * 0.5, 0.15, 0.5 + s * 0.25), mat);
+      step.position.set(0, 0.08 + s * 0.15, d / 2 + 0.2 + s * 0.3);
+      group.add(step);
+    }
+  } else if (type === 'slide') {
+    // ── Ice slide with channel ──
+    const slideLen = w;
+    // Slide runway with channel groove
+    const runway = new THREE.Mesh(new THREE.BoxGeometry(slideLen, 0.6, d, 4, 1, 2), mat);
+    runway.position.set(0, 0.3, 0);
+    runway.castShadow = true; runway.receiveShadow = true;
+    group.add(runway);
+    addGlowEdges(runway, group);
+    // Side walls
+    [-1, 1].forEach(side => {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(slideLen * 0.85, 1.2, 0.2, 3, 1, 1), mat);
+      wall.position.set(0, 1.0, side * (d / 2 - 0.1));
+      group.add(wall);
+      addGlowEdges(wall, group);
+    });
+    // Entry tower
+    const towerH = 6, towerR = 1.4;
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(towerR, towerR + 0.2, towerH, 10), mat);
+    tower.position.set(-slideLen / 2 + 1.8, towerH / 2, 0);
+    tower.castShadow = true;
+    group.add(tower);
+    addGlowEdges(tower, group);
+    // Tower viewing platform
+    const platRing = new THREE.Mesh(new THREE.TorusGeometry(towerR + 0.3, 0.2, 8, 16), accentMat);
+    platRing.position.set(-slideLen / 2 + 1.8, towerH * 0.7, 0);
+    platRing.rotation.x = Math.PI / 2;
+    group.add(platRing);
+    // Tower top cone
+    const topCone = new THREE.Mesh(new THREE.ConeGeometry(towerR * 0.8, 2.5, 10), roofMat);
+    topCone.position.set(-slideLen / 2 + 1.8, towerH + 1.2, 0);
+    topCone.castShadow = true;
+    group.add(topCone);
+    // Landing zone ramp
+    const landing = new THREE.Mesh(new THREE.BoxGeometry(3, 0.4, d + 0.8, 2, 1, 2), mat);
+    landing.position.set(slideLen / 2 - 2, -0.15, 0);
+    landing.rotation.x = -0.15;
+    group.add(landing);
+    // Glow strips along slide
+    for (let gi = 0; gi < 4; gi++) {
+      const gx = -slideLen / 2 + 2 + gi * (slideLen - 4) / 3;
+      const gStrip = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, d * 0.6, 1, 1, 1), glowMat);
+      gStrip.position.set(gx, 0.62, 0);
+      group.add(gStrip);
+    }
+  } else if (type === 'dome') {
+    // ── Tiered arena with ribbed dome ──
+    const nRings = 5;
+    for (let i = 0; i < nRings; i++) {
+      const rw = w - i * 0.65;
+      const tier = new THREE.Mesh(new THREE.CylinderGeometry(rw, rw + 0.1, 0.4, 20), mat);
+      tier.position.y = 0.2 + i * 0.4;
+      tier.castShadow = true;
+      group.add(tier);
+      // Ice ring on each tier
+      if (i < nRings - 1) {
+        const iceRing = new THREE.Mesh(new THREE.TorusGeometry(rw - 0.1, 0.06, 6, 24), accentMat);
+        iceRing.position.y = 0.4 + i * 0.4;
+        iceRing.rotation.x = Math.PI / 2;
+        group.add(iceRing);
+      }
+    }
+    // Dome structure with ribs
+    const domeR = w * 0.7;
+    const domeTop = new THREE.Mesh(new THREE.SphereGeometry(domeR, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), roofMat);
+    domeTop.position.y = 2.2;
+    domeTop.castShadow = true;
+    group.add(domeTop);
+    addGlowEdges(domeTop, group);
+    // Rib arches
+    for (let r = 0; r < 8; r++) {
+      const angle = (r / 8) * Math.PI * 2;
+      const rx = Math.cos(angle) * domeR * 0.55;
+      const rz = Math.sin(angle) * domeR * 0.55;
+      const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, domeR * 0.85, 4), accentMat);
+      rib.position.set(rx, 2.2 + domeR * 0.25, rz);
+      rib.rotation.z = Math.cos(angle) * 0.5;
+      rib.rotation.x = Math.sin(angle) * 0.5;
+      group.add(rib);
+    }
+    // Center stage
+    const stage = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.3, 12), accentMat);
+    stage.position.y = 0.15;
+    group.add(stage);
+    addLightBeam(0, 2.2, 0, 8, group);
+  } else if (type === 'gate') {
+    // ── Grand arch gate ──
+    const pH = h, pR = 0.9, gap = w / 2;
+    // Two fluted pillars
+    [-1, 1].forEach(side => {
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(pR, pR + 0.15, pH, 14), mat);
+      pillar.position.set(side * gap, pH / 2, 0);
+      pillar.castShadow = true;
+      group.add(pillar);
+      addGlowEdges(pillar, group);
+      // Pillar base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(pR + 0.2, pR + 0.35, 0.6, 14), mat);
+      base.position.set(side * gap, 0.3, 0);
+      group.add(base);
+      // Pillar capital
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(pR + 0.1, pR, 0.5, 14), roofMat);
+      cap.position.set(side * gap, pH - 0.25, 0);
+      group.add(cap);
+      // Ice rings at 3 heights
+      [0.3, 0.55, 0.8].forEach(frac => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(pR + 0.15, 0.1, 8, 20), glowMat);
+        ring.position.set(side * gap, pH * frac, 0);
+        ring.rotation.x = Math.PI / 2;
+        group.add(ring);
+      });
+      // Top ice finial
+      const fin = new THREE.Mesh(new THREE.OctahedronGeometry(0.4), glowMat);
+      fin.position.set(side * gap, pH + 0.8, 0);
+      group.add(fin);
+    });
+    // Grand cross beam
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(w + 1.2, 0.65, 1.6, 4, 2, 2), roofMat);
+    beam.position.y = pH - 0.3;
+    beam.castShadow = true;
+    group.add(beam);
+    addGlowEdges(beam, group);
+    // Central gate decoration
+    const decoRing = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.1, 8, 16), glowMat);
+    decoRing.position.set(0, pH + 0.4, 0);
+    group.add(decoRing);
+    // Arch top
+    const archTop = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.5, 10), roofMat);
+    archTop.position.y = pH + 1.5;
+    group.add(archTop);
+    addLightBeam(0, pH + 3, 0, 5, group);
+  } else if (type === 'pagoda') {
+    // ── Chinese pagoda with flying eaves ──
+    const nTiers = Math.max(3, Math.floor(h / 1.5));
+    const tierH = h / nTiers;
+    for (let i = 0; i < nTiers; i++) {
+      const tw = w - i * 0.45;
+      const ty = i * tierH + tierH / 2;
+      const tier = new THREE.Mesh(new THREE.BoxGeometry(tw, tierH - 0.2, tw, 3, 2, 3), mat);
+      tier.position.y = ty;
+      tier.castShadow = true;
+      group.add(tier);
+      addGlowEdges(tier, group);
+      // Sweeping eave (wider disc)
+      const eave = new THREE.Mesh(new THREE.CylinderGeometry(tw * 0.55, tw * 0.75, 0.35, 10), roofMat);
+      eave.position.y = (i + 1) * tierH - 0.1;
+      group.add(eave);
+      // Eave corner tips
+      for (let c = 0; c < 4; c++) {
+        const ca = (c / 4) * Math.PI * 2 + Math.PI / 4;
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.5, 4), roofMat);
+        tip.position.set(Math.cos(ca) * tw * 0.6, (i + 1) * tierH - 0.4, Math.sin(ca) * tw * 0.6);
+        tip.rotation.z = -0.5;
+        tip.rotation.x = Math.PI / 2 - Math.atan2(Math.sin(ca), Math.cos(ca)) * 0.15;
+        group.add(tip);
+      }
+      // Tiny lantern dots at eaves
+      for (let l = 0; l < 8; l++) {
+        const la = (l / 8) * Math.PI * 2;
+        const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 3), new THREE.MeshBasicMaterial({ color: '#ffd700' }));
+        lantern.position.set(Math.cos(la) * tw * 0.62, (i + 1) * tierH + 0.05, Math.sin(la) * tw * 0.62);
+        group.add(lantern);
+      }
+    }
+    // Top spire with multiple rings
+    const spireBase = nTiers * tierH;
+    for (let s = 0; s < 3; s++) {
+      const sr = 0.25 - s * 0.06;
+      const sRing = new THREE.Mesh(new THREE.TorusGeometry(sr, 0.05, 6, 12), roofMat);
+      sRing.position.y = spireBase + 0.4 + s * 0.5;
+      sRing.rotation.x = Math.PI / 2;
+      group.add(sRing);
+    }
+    const spire = new THREE.Mesh(new THREE.ConeGeometry(0.25, 2.5, 10), roofMat);
+    spire.position.y = spireBase + 2;
+    group.add(spire);
+    addLightBeam(0, spireBase + 3.5, 0, 4, group);
+  } else if (type === 'sculptures') {
+    // ── Ice sculpture garden ──
+    const gardenR = w * 0.5;
+    const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(gardenR, gardenR + 0.3, 0.4, 16), mat);
+    pedestal.position.y = 0.2;
+    pedestal.receiveShadow = true;
+    group.add(pedestal);
+    // Sculptures in ring
+    const nSculpts = 7;
+    for (let i = 0; i < nSculpts; i++) {
+      const angle = (i / nSculpts) * Math.PI * 2;
+      const sr = gardenR * 0.65;
+      const sx = Math.cos(angle) * sr;
+      const sz = Math.sin(angle) * sr;
+      const idx = i % 4;
+      let shape;
+      if (idx === 0) shape = new THREE.ConeGeometry(0.35, 1.8, 8);
+      else if (idx === 1) shape = new THREE.DodecahedronGeometry(0.35);
+      else if (idx === 2) shape = new THREE.IcosahedronGeometry(0.35);
+      else shape = new THREE.TorusKnotGeometry(0.25, 0.08, 20, 4);
+      const sc = new THREE.Mesh(shape, createIceMaterial('#b8f0ff', 0.55));
+      sc.position.set(sx, 0.9, sz);
+      sc.rotation.y = angle;
+      sc.castShadow = true;
+      group.add(sc);
+      addGlowEdges(sc, group);
+    }
+    // Center crystal fountain
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.6, 0), createIceMaterial('#c0f4ff', 0.65));
+    crystal.position.y = 1.3;
+    group.add(crystal);
+    addGlowEdges(crystal, group);
+    // Glow halo
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.04, 8, 24), new THREE.MeshBasicMaterial({ color: '#7bffff', transparent: true, opacity: 0.5, depthWrite: false }));
+    halo.position.y = 1.3;
+    halo.rotation.x = Math.PI / 2;
+    group.add(halo);
+  } else {
+    // Default: basic box with roof
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d, 3, 2, 3), mat);
+    body.position.y = h / 2;
+    body.castShadow = true; body.receiveShadow = true;
+    group.add(body);
+    addGlowEdges(body, group);
+    const basicRoof = new THREE.Mesh(new THREE.ConeGeometry(w * 0.55, 1.5, 8), roofMat);
+    basicRoof.position.y = h + 0.5;
+    group.add(basicRoof);
+  }
+
+  return group;
+}
+
+// ── Place Buildings ──
+const buildings = [];
+const buildingDefs = [
+  // Central cluster
+  { x: 0, z: -5, type: 'tower', height: 13, width: 4, depth: 4, color: '#8cc8f0', roofColor: '#b8e0ff', label: '冰晶城堡', density: 320 },
+  { x: -9, z: -2, type: 'palace', height: 7, width: 8, depth: 6, color: '#7db8e8', roofColor: '#a8d8f8', label: '冰雪宫殿', density: 245 },
+  { x: 9, z: -3, type: 'slide', height: 1, width: 13, depth: 3, color: '#90d0f8', roofColor: '#c0e8ff', label: '极速冰滑梯', density: 180 },
+  { x: -3, z: 7, type: 'dome', height: 2, width: 5, depth: 5, color: '#88c8f0', roofColor: '#b0dcf8', label: '梦幻雪圈', density: 155 },
+  { x: 7, z: 6, type: 'tower', height: 8, width: 3, depth: 3, color: '#82c4ec', roofColor: '#a8d8f8', label: '望雪塔', density: 98 },
+  { x: -8, z: 6, type: 'gate', height: 10, width: 6, depth: 2, color: '#78bce4', roofColor: '#a0d4f4', label: '迎宾门', density: 420 },
+  { x: 4, z: -11, type: 'palace', height: 5, width: 6, depth: 5, color: '#86c8f0', roofColor: '#b4dcf8', label: '冰酒吧', density: 135 },
+  { x: -6, z: -10, type: 'tower', height: 7, width: 2.5, depth: 2.5, color: '#8acaf2', roofColor: '#b8e0ff', label: '观景塔', density: 72 },
+  // New buildings
+  { x: 12, z: 4, type: 'pagoda', height: 6, width: 3, depth: 3, color: '#80c4ee', roofColor: '#b0e0ff', label: '冰晶宝塔', density: 110 },
+  { x: -12, z: 3, type: 'sculptures', height: 1, width: 5, depth: 5, color: '#90d4f8', roofColor: '#c0e8ff', label: '冰雕花园', density: 65 },
+  { x: 0, z: 10, type: 'tower', height: 9, width: 3.5, depth: 3.5, color: '#84c6ee', roofColor: '#b4dcf8', label: '北极光塔', density: 88 },
+  { x: 3, z: 2, type: 'dome', height: 2.5, width: 3.5, depth: 3.5, color: '#86caf2', roofColor: '#b8e4ff', label: '冰雪演艺厅', density: 200 },
+  { x: -5, z: -2, type: 'palace', height: 4.5, width: 5, depth: 4, color: '#80c0e8', roofColor: '#a8d8f8', label: '游客中心', density: 380 },
+  { x: 14, z: -5, type: 'pagoda', height: 5, width: 2.5, depth: 2.5, color: '#7ec0ea', roofColor: '#a0d4f4', label: '许愿塔', density: 55 },
+  { x: -13, z: -6, type: 'slide', height: 0.8, width: 9, depth: 2, color: '#8cd0f4', roofColor: '#bce4fc', label: '迷你滑道', density: 92 },
+  { x: -2, z: -14, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
+];
+
+buildingDefs.forEach(def => {
+  const bld = createBuilding(def.x, def.z, def);
+  scene.add(bld);
+  buildings.push({ group: bld, ...def });
+});
+
+// ── Data Bubbles (CSS2D) ──
+const bubbles = [];
+buildings.forEach(b => {
+  const div = document.createElement('div');
+  div.className = 'bubble-label';
+  div.innerHTML = `${b.label}<br><span class="val">${b.density}</span><span class="unit">人</span>`;
+  const label = new CSS2DObject(div);
+  const topY = (b.type === 'tower' ? b.height + 4 : b.type === 'gate' ? b.height + 3 : b.height + 3.5);
+  label.position.set(b.x, topY, b.z);
+  scene.add(label);
+  bubbles.push({ obj: label, building: b, div });
+});
+
+// ── Snow Particles ──
+const snowCount = 1000;
+const snowGeo = new THREE.BufferGeometry();
+const snowPositions = new Float32Array(snowCount * 3);
+const snowVelocities = [];
+const snowBounds = { x: 45, y: 32, z: 45 };
+
+for (let i = 0; i < snowCount; i++) {
+  snowPositions[i * 3] = (Math.random() - 0.5) * snowBounds.x * 2;
+  snowPositions[i * 3 + 1] = Math.random() * snowBounds.y;
+  snowPositions[i * 3 + 2] = (Math.random() - 0.5) * snowBounds.z * 2;
+  snowVelocities.push({
+    vy: 0.2 + Math.random() * 0.7,
+    vx: (Math.random() - 0.5) * 0.4,
+    vz: (Math.random() - 0.5) * 0.4,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: 0.3 + Math.random() * 0.8,
+    wobbleAmp: 0.001 + Math.random() * 0.005,
+  });
+}
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPositions, 3));
+
+const snowTexCanvas = document.createElement('canvas');
+snowTexCanvas.width = 32;
+snowTexCanvas.height = 32;
+const sctx = snowTexCanvas.getContext('2d');
+const gradient = sctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+gradient.addColorStop(0, 'rgba(255,255,255,1)');
+gradient.addColorStop(0.3, 'rgba(210,235,255,0.9)');
+gradient.addColorStop(0.7, 'rgba(180,215,245,0.2)');
+gradient.addColorStop(1, 'rgba(180,215,245,0)');
+sctx.fillStyle = gradient;
+sctx.fillRect(0, 0, 32, 32);
+const snowTexture = new THREE.CanvasTexture(snowTexCanvas);
+
+const snowMat = new THREE.PointsMaterial({
+  map: snowTexture,
+  color: '#e8f4ff',
+  size: 0.35,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  transparent: true,
+  opacity: 0.85,
+});
+const snowParticles = new THREE.Points(snowGeo, snowMat);
+scene.add(snowParticles);
+
+// ── Data Model ──
+const dataState = {
+  currentVisitors: 8523,
+  totalToday: 32180,
+  entryRate: 186,
+  visitorHistory: [],
+  weatherTemp: -15,
+  weatherType: '小雪',
+  revenue: 386.5,
+  satisfaction: 94.2,
+  parkingUsed: 312,
+  parkingTotal: 500,
+};
+
+// ── Alert System ──
+const alertsData = [
+  { msg: '冰晶城堡区域人流密度已达 85%，建议启动分流预案', level: 'warn' },
+  { msg: '极速冰滑梯排队时长超过 45 分钟，建议增开通道', level: 'warn' },
+  { msg: '餐饮广场B区烟雾传感器离线，请安排检修', level: 'danger' },
+];
+
+function renderAlerts() {
+  const list = document.getElementById('alert-list');
+  list.innerHTML = alertsData.map(a => {
+    const cls = a.level === 'danger' ? 'danger' : '';
+    const lvlCls = a.level === 'danger' ? 'danger' : 'warn';
+    const lvlLabel = a.level === 'danger' ? '🔴 严重' : '🟡 提醒';
+    const time = new Date(Date.now() - Math.random() * 600000).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+    return `<div class="alert-item ${cls}">
+      <span style="flex:1;padding-right:8px;">${a.msg}</span>
+      <span class="alert-level ${lvlCls}">${lvlLabel}</span>
+      <span style="font-size:10px;color:var(--text-muted);margin-left:8px;">${time}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('alert-count').textContent = alertsData.length;
+}
+
+function toggleAlert() {
+  const panel = document.getElementById('alert-panel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) renderAlerts();
+}
+window.toggleAlert = toggleAlert;
+const cameraNames = ['主入口', '冰晶城堡', '极速冰滑梯', '梦幻雪圈', '冰雪大舞台', '餐饮广场', '停车场A', '游客中心'];
+const cameraCanvases = [];
+
+function initCameras() {
+  const grid = document.getElementById('camera-grid');
+  cameraNames.forEach((name, i) => {
+    const card = document.createElement('div');
+    card.className = 'camera-card';
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; canvas.height = 60;
+    const label = document.createElement('div');
+    label.className = 'camera-label';
+    label.innerHTML = `<span>📍 ${name}</span><span class="camera-live">LIVE</span>`;
+    card.appendChild(canvas);
+    card.appendChild(label);
+    grid.appendChild(card);
+    cameraCanvases.push({ canvas, name, flicker: Math.random() });
+  });
+}
+
+function updateCameras() {
+  cameraCanvases.forEach(c => {
+    const ctx = c.canvas.getContext('2d');
+    // Simulated camera: dark grainy image with noise
+    const now = Date.now();
+    // Random "people" shapes that change slightly
+    ctx.fillStyle = `rgb(${10 + Math.random()*20}, ${20 + Math.random()*15}, ${35 + Math.random()*20})`;
+    ctx.fillRect(0, 0, c.canvas.width, c.canvas.height);
+    // Simulate moving figures
+    for (let i = 0; i < 8 + Math.floor(Math.random() * 12); i++) {
+      const x = 10 + ((i * 13 + (now % 5000) / 100) % c.canvas.width);
+      const y = 15 + (Math.sin(i * 2.7 + now / 3000) * 8) + 15;
+      ctx.fillStyle = `rgba(${180 + Math.random()*40}, ${210 + Math.random()*30}, ${240 + Math.random()*15}, 0.7)`;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 3, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Timestamp overlay
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, c.canvas.width, 16);
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '8px monospace';
+    const d = new Date();
+    ctx.fillText(`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`, 4, 11);
+    c.flicker = Math.random();
+  });
+}
+
+// ── Review Data ──
+const reviewPool = [
+  { text: '冰雪大世界太震撼了！冰雕晶莹剔透，灯光秀绝美！', sentiment: 'pos', source: '携程', time: '2分钟前' },
+  { text: '排队时间太长了，零下20度冻得受不了……', sentiment: 'neg', source: '美团', time: '5分钟前' },
+  { text: '冰滑梯太刺激了，孩子玩了三遍还不肯走！', sentiment: 'pos', source: '大众点评', time: '8分钟前' },
+  { text: '整体不错，性价比还可以，就是餐饮有点贵', sentiment: 'neutral', source: '携程', time: '12分钟前' },
+  { text: '夜景比白天美十倍，强烈建议晚上去！', sentiment: 'pos', source: '抖音', time: '15分钟前' },
+  { text: '工作人员服务态度有待提高，问路爱理不理', sentiment: 'neg', source: '微博', time: '18分钟前' },
+  { text: '冰雪大舞台的演出太精彩了，值回票价！', sentiment: 'pos', source: '小红书', time: '22分钟前' },
+  { text: '停车场指示不清晰，找了半小时才找到车', sentiment: 'neg', source: '美团', time: '25分钟前' },
+  { text: '建议自带热水和暖宝宝，园内物价偏高', sentiment: 'neutral', source: '知乎', time: '30分钟前' },
+  { text: '第一次看到这么大规模的冰建筑，太壮观了', sentiment: 'pos', source: '携程', time: '35分钟前' },
+  { text: '电子导览很方便，跟着地图走不迷路', sentiment: 'pos', source: '小程序', time: '40分钟前' },
+  { text: '厕所卫生状况一般，高峰期还需要排队', sentiment: 'neg', source: '大众点评', time: '45分钟前' },
+];
+
+let reviewQueue = [...reviewPool];
+
+function updateReviews() {
+  // Rotate review queue
+  if (Math.random() < 0.3) {
+    const r = reviewQueue.shift();
+    reviewQueue.push(r);
+  }
+
+  const feed = document.getElementById('review-feed');
+  // Show latest 4 reviews
+  const latest = reviewQueue.slice(0, 4);
+  feed.innerHTML = latest.map(r => {
+    const cls = r.sentiment === 'neg' ? 'negative' : r.sentiment === 'pos' ? 'positive' : '';
+    const sentCls = r.sentiment === 'neg' ? 'neg' : r.sentiment === 'pos' ? 'pos' : 'neutral';
+    const sentLabel = r.sentiment === 'neg' ? '😞 负面' : r.sentiment === 'pos' ? '😊 正面' : '😐 中性';
+    return `<div class="review-item ${cls}">
+      <div class="review-text">"${r.text}"</div>
+      <div class="review-meta">
+        <span>${r.source} · ${r.time}</span>
+        <span class="review-sentiment ${sentCls}">${sentLabel}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Update sentiment stats
+  const posCount = reviewPool.filter(r => r.sentiment === 'pos').length;
+  const neuCount = reviewPool.filter(r => r.sentiment === 'neutral').length;
+  const negCount = reviewPool.filter(r => r.sentiment === 'neg').length;
+  const total = posCount + neuCount + negCount;
+  const posPct = Math.round(posCount / total * 100);
+  const neuPct = Math.round(neuCount / total * 100);
+  const negPct = 100 - posPct - neuPct;
+
+  document.getElementById('sent-pos').style.width = posPct + '%';
+  document.getElementById('sent-neu').style.width = neuPct + '%';
+  document.getElementById('sent-neg').style.width = negPct + '%';
+  document.getElementById('sent-pos-val').textContent = posPct + '%';
+  document.getElementById('sent-neu-val').textContent = neuPct + '%';
+  document.getElementById('sent-neg-val').textContent = negPct + '%';
+}
+
+// ── Inspection Data ──
+const inspectionTasks = [
+  { name: '冰晶城堡安全巡检', status: 'done', time: '08:30' },
+  { name: '极速冰滑梯结构检查', status: 'done', time: '09:00' },
+  { name: '入口闸机设备检测', status: 'done', time: '09:15' },
+  { name: '消防设施例行检查', status: 'pending', time: '10:00' },
+  { name: '餐饮区卫生巡查', status: 'pending', time: '11:00' },
+  { name: '电子围栏系统校验', status: 'done', time: '07:00' },
+  { name: '紧急疏散通道检查', status: 'issue', time: '09:30' },
+];
+
+function renderInspection() {
+  const list = document.getElementById('inspect-list');
+  list.innerHTML = inspectionTasks.map(t => {
+    const cls = t.status === 'done' ? 'done' : t.status === 'pending' ? 'pending' : 'issue';
+    const label = t.status === 'done' ? '✅ 已完成' : t.status === 'pending' ? '⏳ 待执行' : '⚠️ 异常';
+    return `<div class="inspect-item">
+      <span class="inspect-name">${t.name}</span>
+      <span class="inspect-status ${cls}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Tab Switching ──
+function switchTab(tab, el) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
+  document.getElementById('tab-camera').style.display = tab === 'camera' ? 'block' : 'none';
+  document.getElementById('tab-review').style.display = tab === 'review' ? 'block' : 'none';
+}
+window.switchTab = switchTab;
+
+// Initialize history
+for (let i = 29; i >= 0; i--) {
+  dataState.visitorHistory.push(8000 + Math.random() * 2500);
+}
+
+function updateData() {
+  const delta = (Math.random() - 0.45) * 80;
+  dataState.currentVisitors = Math.max(7500, Math.min(10500, dataState.currentVisitors + delta));
+  dataState.entryRate = Math.max(100, Math.min(300, dataState.entryRate + (Math.random() - 0.5) * 30));
+  dataState.totalToday += Math.floor(Math.random() * 50) + 20;
+  dataState.revenue += (Math.random() * 2.5 + 0.5);
+  dataState.satisfaction = Math.max(88, Math.min(97, dataState.satisfaction + (Math.random() - 0.5) * 0.6));
+  dataState.parkingUsed += Math.floor((Math.random() - 0.45) * 10);
+  dataState.parkingUsed = Math.max(200, Math.min(490, dataState.parkingUsed));
+  dataState.visitorHistory.push(dataState.currentVisitors);
+  if (dataState.visitorHistory.length > 30) dataState.visitorHistory.shift();
+
+  dataState.weatherTemp = -14 + Math.round((Math.random() - 0.5) * 4);
+  const weatherOptions = ['小雪', '多云', '晴', '阵雪', '阴'];
+  if (Math.random() < 0.1) dataState.weatherType = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+
+  // Update building densities
+  buildings.forEach(b => {
+    const jitter = (Math.random() - 0.5) * 40;
+    b.density = Math.max(20, Math.min(500, b.density + jitter));
+  });
+
+  // Update bubbles
+  bubbles.forEach(bub => {
+    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span>`;
+  });
+}
+
+function renderUI() {
+  elCurrentVisitors.textContent = Math.round(dataState.currentVisitors).toLocaleString();
+  elOnlineCount.textContent = Math.round(dataState.currentVisitors).toLocaleString();
+  elTotalToday.textContent = dataState.totalToday.toLocaleString();
+  elEntryRate.textContent = Math.round(dataState.entryRate);
+  elWeather.textContent = `${dataState.weatherTemp}°C ${dataState.weatherType}`;
+  document.getElementById('revenue-today').textContent = dataState.revenue.toFixed(1);
+  document.getElementById('satisfaction').textContent = dataState.satisfaction.toFixed(1);
+  document.getElementById('satisfaction-bar').style.width = dataState.satisfaction + '%';
+  document.getElementById('parking-info').textContent = `${dataState.parkingUsed}/${dataState.parkingTotal}`;
+  document.getElementById('revenue-delta').innerHTML = `↑ ${(1.5 + Math.random()*10).toFixed(1)}% 较昨日`;
+
+  const delta = dataState.currentVisitors - dataState.visitorHistory[dataState.visitorHistory.length - 2];
+  const pct = dataState.visitorHistory.length > 1
+    ? ((delta / dataState.visitorHistory[dataState.visitorHistory.length - 2]) * 100).toFixed(1)
+    : '0.0';
+  elVisitorDelta.innerHTML = delta >= 0
+    ? `↑ ${pct}% 较上时段`
+    : `↓ ${Math.abs(pct)}% 较上时段`;
+  elVisitorDelta.className = 'stat-delta ' + (delta >= 0 ? 'up' : 'down');
+
+  // Clock
+  const now = new Date();
+  elClock.innerHTML = `🕐 ${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+
+function drawSparkline() {
+  const w = sparklineCanvas.width;
+  const h = sparklineCanvas.height;
+  ctxSpark.clearRect(0, 0, w, h);
+
+  // Background
+  ctxSpark.fillStyle = 'rgba(5,20,45,0.4)';
+  ctxSpark.fillRect(0, 0, w, h);
+
+  const data = dataState.visitorHistory;
+  if (data.length < 2) return;
+
+  const padding = { top: 16, right: 20, bottom: 20, left: 20 };
+  const plotW = w - padding.left - padding.right;
+  const plotH = h - padding.top - padding.bottom;
+
+  const minV = Math.min(...data) - 200;
+  const maxV = Math.max(...data) + 200;
+
+  // Grid lines
+  ctxSpark.strokeStyle = 'rgba(56,189,248,0.08)';
+  ctxSpark.lineWidth = 1;
+  for (let i = 1; i <= 3; i++) {
+    const gy = padding.top + (plotH / 4) * i;
+    ctxSpark.beginPath();
+    ctxSpark.moveTo(padding.left, gy);
+    ctxSpark.lineTo(w - padding.right, gy);
+    ctxSpark.stroke();
+  }
+
+  // Area fill gradient
+  const areaGrad = ctxSpark.createLinearGradient(0, padding.top, 0, padding.top + plotH);
+  areaGrad.addColorStop(0, 'rgba(56,189,248,0.3)');
+  areaGrad.addColorStop(1, 'rgba(56,189,248,0.02)');
+
+  // Draw area
+  ctxSpark.beginPath();
+  data.forEach((v, i) => {
+    const px = padding.left + (i / (data.length - 1)) * plotW;
+    const py = padding.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+    if (i === 0) ctxSpark.moveTo(px, py);
+    else ctxSpark.lineTo(px, py);
+  });
+  const lastX = padding.left + plotW;
+  ctxSpark.lineTo(lastX, padding.top + plotH);
+  ctxSpark.lineTo(padding.left, padding.top + plotH);
+  ctxSpark.closePath();
+  ctxSpark.fillStyle = areaGrad;
+  ctxSpark.fill();
+
+  // Line
+  ctxSpark.beginPath();
+  data.forEach((v, i) => {
+    const px = padding.left + (i / (data.length - 1)) * plotW;
+    const py = padding.top + plotH - ((v - minV) / (maxV - minV)) * plotH;
+    if (i === 0) ctxSpark.moveTo(px, py);
+    else ctxSpark.lineTo(px, py);
+  });
+  ctxSpark.strokeStyle = '#38bdf8';
+  ctxSpark.lineWidth = 2;
+  ctxSpark.shadowColor = '#38bdf8';
+  ctxSpark.shadowBlur = 8;
+  ctxSpark.stroke();
+  ctxSpark.shadowBlur = 0;
+
+  // Endpoint dot
+  const lastPt = data[data.length - 1];
+  const epx = padding.left + plotW;
+  const epy = padding.top + plotH - ((lastPt - minV) / (maxV - minV)) * plotH;
+  ctxSpark.beginPath();
+  ctxSpark.arc(epx, epy, 4, 0, Math.PI * 2);
+  ctxSpark.fillStyle = '#00d4ff';
+  ctxSpark.shadowColor = '#00d4ff';
+  ctxSpark.shadowBlur = 10;
+  ctxSpark.fill();
+  ctxSpark.shadowBlur = 0;
+
+  // Y-axis labels
+  ctxSpark.fillStyle = 'rgba(138,180,216,0.6)';
+  ctxSpark.font = '10px system-ui';
+  ctxSpark.textAlign = 'left';
+  ctxSpark.fillText(Math.round(maxV).toLocaleString(), 2, padding.top + 10);
+  ctxSpark.fillText(Math.round(minV).toLocaleString(), 2, padding.top + plotH - 2);
+}
+
+// ── Zone & Facility UI ──
+const zoneData = [
+  { name: '冰晶城堡主景区', status: 'online', visitors: 320, capacity: 500 },
+  { name: '冰雪宫殿区', status: 'online', visitors: 245, capacity: 400 },
+  { name: '极速冰滑梯区', status: 'busy', visitors: 180, capacity: 200 },
+  { name: '梦幻雪圈区', status: 'online', visitors: 155, capacity: 300 },
+  { name: '冰酒吧休闲区', status: 'online', visitors: 135, capacity: 250 },
+  { name: '迎宾广场', status: 'busy', visitors: 420, capacity: 600 },
+  { name: '望雪塔观景区', status: 'online', visitors: 98, capacity: 200 },
+  { name: '冰雕艺术展区', status: 'online', visitors: 210, capacity: 350 },
+];
+
+const facilityData = [
+  { name: '主照明系统', on: true },
+  { name: '冰滑梯升降机', on: true },
+  { name: '雪圈传送带', on: true },
+  { name: 'LED冰灯系统', on: true },
+  { name: '造雪机组-A', on: true },
+  { name: '造雪机组-B', on: false },
+  { name: '安检闸机', on: true },
+  { name: '广播系统', on: true },
+];
+
+function renderZoneList() {
+  zoneList.innerHTML = zoneData.map(z => `
+    <li class="zone-item">
+      <div>
+        <div class="zone-name">${z.name}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
+          容量: ${z.visitors}/${z.capacity}
+        </div>
+      </div>
+      <div class="zone-status">
+        <span class="zone-dot ${z.status === 'busy' ? 'busy' : 'online'}"></span>
+        ${z.status === 'busy' ? '拥挤' : '畅通'}
+      </div>
+    </li>
+  `).join('');
+}
+
+function renderFacilityList() {
+  facilityList.innerHTML = facilityData.map(f => `
+    <div class="facility-row">
+      <span>${f.name}</span>
+      <span class="facility-status ${f.on ? 'on' : 'off'}">${f.on ? '● 在线' : '○ 离线'}</span>
+    </div>
+  `).join('');
+}
+
+renderZoneList();
+renderFacilityList();
+
+// ── Update zone data periodically ──
+function updateZoneData() {
+  zoneData.forEach(z => {
+    z.visitors = Math.max(10, Math.min(z.capacity, z.visitors + Math.floor((Math.random() - 0.45) * 30)));
+    z.status = z.visitors / z.capacity > 0.7 ? 'busy' : 'online';
+  });
+  // Random facility toggle
+  if (Math.random() < 0.05) {
+    const f = facilityData[Math.floor(Math.random() * facilityData.length)];
+    f.on = !f.on;
+  }
+  renderZoneList();
+  renderFacilityList();
+}
+
+// ── Animation Loop ──
+const clock = new THREE.Clock();
+let dataUpdateTimer = 0;
+let zoneUpdateTimer = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const now = Date.now() * 0.001;
+  controls.update();
+
+  // Aurora sky time
+  sky.material.uniforms.uTime.value += dt;
+
+  // Animate snow with wobble
+  const posArr = snowGeo.attributes.position.array;
+  for (let i = 0; i < snowCount; i++) {
+    const v = snowVelocities[i];
+    v.wobble += v.wobbleSpeed * dt;
+    posArr[i * 3] += v.vx * dt + Math.sin(v.wobble) * v.wobbleAmp;
+    posArr[i * 3 + 1] -= v.vy * dt;
+    posArr[i * 3 + 2] += v.vz * dt + Math.cos(v.wobble * 1.3) * v.wobbleAmp;
+
+    if (posArr[i * 3 + 1] < -1) {
+      posArr[i * 3 + 1] = snowBounds.y;
+      posArr[i * 3] = (Math.random() - 0.5) * snowBounds.x * 2;
+      posArr[i * 3 + 2] = (Math.random() - 0.5) * snowBounds.z * 2;
+    }
+    if (Math.abs(posArr[i * 3]) > snowBounds.x) posArr[i * 3] *= -1;
+    if (Math.abs(posArr[i * 3 + 2]) > snowBounds.z) posArr[i * 3 + 2] *= -1;
+  }
+  snowGeo.attributes.position.needsUpdate = true;
+
+  // Animate scan rings
+  ringGeos.forEach(ring => {
+    ring.scale.x = 1 + Math.sin(now + ring.userData.phase) * 0.15;
+    ring.scale.z = ring.scale.x;
+    ring.material.opacity = 0.15 + Math.sin(now * 1.5 + ring.userData.phase) * 0.08;
+  });
+
+  // Data update
+  dataUpdateTimer += dt;
+  if (dataUpdateTimer >= 2) {
+    dataUpdateTimer = 0;
+    updateData();
+    renderUI();
+    drawSparkline();
+    updateCameras();
+    updateReviews();
+  }
+
+  zoneUpdateTimer += dt;
+  if (zoneUpdateTimer >= 5) {
+    zoneUpdateTimer = 0;
+    updateZoneData();
+  }
+
+  renderer.render(scene, camera);
+  css2dRenderer.render(scene, camera);
+}
+
+// ── Resize Handler ──
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  css2dRenderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Keyboard shortcuts ──
+window.addEventListener('keydown', (e) => {
+  switch (e.key.toLowerCase()) {
+    case 'r': controls.target.set(0, 1, 0); camera.position.set(45, 32, 55); controls.update(); break;
+    case 'f': controls.target.set(0, 1, 0); camera.position.set(0, 40, 5); controls.update(); break;
+    case 't': controls.target.set(0, 1, 0); camera.position.set(0, 5, 60); controls.update(); break;
+  }
+});
+
+// ── Start ──
+initCameras();
+renderInspection();
+updateReviews();
+renderUI();
+drawSparkline();
+animate();
+
+console.log('%c❄️ 冰雪大世界 3D 可视化大屏已就绪 %c| %cR=重置视角 F=俯瞰 T=顶部',
+  'color:#38bdf8;font-size:14px;', '', 'color:#8ab4d8;');
+console.log('%c多业态融合智慧文旅管控系统 v1.0', 'color:#4a6a8a;');
+</script>
+</body>
+</html>

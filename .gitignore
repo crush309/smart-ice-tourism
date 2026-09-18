@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+~$*.pptx
+~$*.docx
+
+# Merge temp files
+css_insert.txt
+html_insert.txt
+js_part1.txt
+js_part2.txt
+js_part3.txt
+merge.py
+merge2.py
+
+# Superpowers
+.superpowers/
+
+# Large data files (optional)
+*.csv
+!demo/data/*.csv
