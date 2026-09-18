@@ -312,7 +312,162 @@ body {
 /* scrollbar */
 .panel::-webkit-scrollbar { width: 3px; }
 .panel::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+/* ══════════════════════════════════════════════
+   新增CSS：详情弹窗 | 营收Tab | 业态融合 | 语义分析
+   电子围栏 | AI预测 | 服务短板 | 评论动画
+   ══════════════════════════════════════════════ */
+
+/* 详情弹窗 */
+#detail-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:100; background:rgba(2,8,20,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+#detail-modal.show { display:flex; }
+#detail-card { background:linear-gradient(135deg, rgba(10,30,60,0.95), rgba(5,15,35,0.98)); border:1px solid rgba(80,180,240,0.35); border-radius:16px; padding:24px; max-width:620px; width:90%; max-height:85vh; overflow-y:auto; box-shadow:0 0 60px rgba(0,150,255,0.12); position:relative; }
+#detail-card::before { content:''; position:absolute; top:0; left:30px; right:30px; height:1px; background:linear-gradient(90deg, transparent, var(--accent-glow), transparent); }
+#detail-close { position:absolute; top:8px; right:12px; background:none; border:none; color:var(--text-secondary); font-size:22px; cursor:pointer; padding:4px 8px; border-radius:6px; transition:all .2s; }
+#detail-close:hover { color:#fff; background:rgba(255,255,255,0.08); }
+.detail-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border-glow); }
+.detail-icon { font-size:32px; }
+.detail-name { font-size:20px; font-weight:700; color:var(--text-primary); }
+.detail-type { font-size:11px; color:var(--text-muted); background:rgba(56,189,248,0.1); padding:2px 8px; border-radius:10px; }
+.detail-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+.detail-kpi { background:rgba(8,20,40,0.7); border:1px solid var(--border-glow); border-radius:10px; padding:12px; text-align:center; }
+.detail-kpi .kpi-val { font-size:24px; font-weight:700; color:var(--accent-ice); }
+.detail-kpi .kpi-label { font-size:10px; color:var(--text-muted); margin-top:2px; }
+.detail-kpi .kpi-hint { font-size:9px; color:var(--text-muted); opacity:0.7; }
+.detail-chart { width:100%; height:180px; margin-bottom:14px; }
+.detail-info { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:11px; color:var(--text-secondary); }
+.detail-info .info-row { display:flex; justify-content:space-between; padding:4px 8px; background:rgba(255,255,255,0.02); border-radius:4px; }
+.detail-info .info-label { color:var(--text-muted); }
+.detail-info .info-val { font-weight:600; }
+.detail-actions { display:flex; gap:8px; margin-top:14px; }
+.detail-btn { flex:1; padding:8px; border-radius:8px; border:1px solid var(--border-glow); background:rgba(56,189,248,0.08); color:var(--text-primary); font-size:11px; cursor:pointer; transition:all .2s; text-align:center; }
+.detail-btn:hover { background:rgba(56,189,248,0.2); border-color:var(--accent-ice); }
+.detail-btn.warn { border-color:rgba(245,158,11,0.4); color:var(--status-warn); }
+.detail-btn.warn:hover { background:rgba(245,158,11,0.15); }
+.detail-btn.danger { border-color:rgba(239,68,68,0.4); color:var(--status-offline); }
+
+/* 业态营收Tab */
+#revenue-panel { display:none; }
+#revenue-panel.show { display:block; }
+.rev-tabs { display:flex; gap:4px; margin-bottom:10px; }
+.rev-tab { flex:1; padding:5px 0; text-align:center; font-size:10px; color:var(--text-muted); background:rgba(255,255,255,0.02); border:1px solid transparent; border-radius:6px; cursor:pointer; transition:all .2s; }
+.rev-tab.active { color:var(--accent-ice); background:rgba(56,189,248,0.1); border-color:var(--border-glow); }
+.rev-detail { font-size:10px; }
+.rev-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.03); }
+.rev-row .rev-name { color:var(--text-secondary); }
+.rev-row .rev-val { font-weight:600; color:var(--text-primary); }
+.rev-row .rev-bar { width:60px; height:3px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+.rev-row .rev-bar-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, var(--accent-deep), var(--accent-ice)); transition:width .8s; }
+.rev-chart { width:100%; height:180px; }
+
+/* 游客画像 */
+.profile-chart { width:100%; }
+.agency-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:6px 8px; margin-bottom:3px;
+  border-radius:6px; background:rgba(10,30,60,0.4);
+  font-size:10px;
+}
+.agency-name { color:var(--text-primary); font-weight:600; }
+.agency-info { color:var(--text-muted); }
+.agency-count { color:var(--accent-ice); font-weight:700; }
+
+/* 业态融合Tab */
+#integration-panel { display:none; }
+#integration-panel.show { display:block; }
+.int-section { margin-bottom:12px; }
+.int-section-title { font-size:11px; font-weight:600; color:var(--accent-ice); margin-bottom:6px; padding-left:8px; border-left:2px solid var(--accent-ice); }
+.rfm-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.rfm-cell { background:rgba(8,20,40,0.6); border-radius:8px; padding:10px 6px; text-align:center; border:1px solid var(--border-glow); }
+.rfm-cell .rfm-pct { font-size:18px; font-weight:700; }
+.rfm-cell .rfm-label { font-size:9px; color:var(--text-muted); margin-top:2px; }
+.funnel-item { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.funnel-label { width:40px; font-size:9px; color:var(--text-secondary); text-align:right; }
+.funnel-bar-wrap { flex:1; height:18px; background:rgba(255,255,255,0.03); border-radius:4px; overflow:hidden; position:relative; }
+.funnel-bar { height:100%; border-radius:4px; background:linear-gradient(90deg, var(--accent-deep), var(--accent-ice)); transition:width 1s; }
+.funnel-val { position:absolute; right:6px; top:50%; transform:translateY(-50%); font-size:9px; color:#fff; font-weight:600; }
+.funnel-drop { font-size:9px; color:var(--status-offline); width:55px; }
+.cross-chart { width:100%; height:160px; }
+
+/* 网评舆情增强 */
+.review-feed { max-height:160px; overflow-y:auto; }
+.review-item { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.03); animation:slideDown .4s ease-out; font-size:10px; }
+.review-item .rev-user { color:var(--accent-ice); font-weight:600; }
+.review-item .rev-text { color:var(--text-secondary); margin-left:4px; }
+.review-item .rev-time { color:var(--text-muted); font-size:9px; float:right; }
+.review-item .rev-sentiment { font-size:9px; padding:1px 6px; border-radius:8px; margin-left:4px; }
+.review-item .rev-sentiment.pos { background:rgba(34,197,94,0.15); color:#22c55e; }
+.review-item .rev-sentiment.neg { background:rgba(239,68,68,0.15); color:#ef4444; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+.sentiment-bar-wrap { display:flex; gap:10px; margin:8px 0; }
+.sentiment-bar-label { font-size:10px; color:var(--text-muted); width:36px; }
+.sentiment-bar-track { flex:1; height:14px; background:rgba(255,255,255,0.04); border-radius:7px; overflow:hidden; display:flex; }
+.sentiment-bar-pos { background:linear-gradient(90deg, #22c55e, #4ade80); transition:width .6s; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; }
+.sentiment-bar-neg { background:linear-gradient(90deg, #ef4444, #f87171); transition:width .6s; display:flex; align-items:center; justify-content:center; font-size:9px; color:#fff; }
+.keyword-cloud { display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+.keyword-tag { padding:3px 8px; border-radius:10px; font-size:9px; font-weight:600; transition:all .4s; }
+.sentiment-chart { width:100%; height:120px; }
+.service-chart { width:100%; height:200px; }
+
+/* AI预测面板 */
+#predict-panel { margin-top:10px; }
+.predict-chart { width:100%; height:180px; }
+.predict-list { margin-top:8px; }
+.predict-day { display:flex; align-items:center; gap:8px; padding:5px 8px; border-bottom:1px solid rgba(255,255,255,0.02); font-size:10px; }
+.predict-day .pday { width:36px; color:var(--text-secondary); }
+.predict-day .pval { font-weight:600; color:var(--text-primary); width:48px; }
+.predict-day .ptrend { font-size:9px; width:40px; }
+.predict-day .ptrend.up { color:#22c55e; }
+.predict-day .ptrend.down { color:#ef4444; }
+.predict-day .pbar { flex:1; height:4px; background:rgba(255,255,255,0.04); border-radius:2px; overflow:hidden; }
+.predict-day .pbar-fill { height:100%; border-radius:2px; transition:width .8s; }
+.predict-day .pwarn { font-size:9px; color:var(--status-warn); width:50px; }
+
+/* 服务短板 */
+.gap-list { margin-top:8px; }
+.gap-item { display:flex; align-items:center; gap:8px; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.03); font-size:10px; }
+.gap-severity { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.gap-severity.critical { background:#ef4444; box-shadow:0 0 6px rgba(239,68,68,0.5); }
+.gap-severity.major { background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,0.5); }
+.gap-severity.minor { background:#3b82f6; box-shadow:0 0 6px rgba(59,130,246,0.4); }
+.gap-name { flex:1; color:var(--text-secondary); }
+.gap-val { color:var(--text-muted); font-size:9px; }
+.gap-action { color:var(--accent-ice); font-size:9px; cursor:pointer; text-decoration:underline; }
+
+/* 解决方案弹窗 */
+#solution-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:110; background:rgba(2,8,20,0.85); align-items:center; justify-content:center; }
+#solution-modal.show { display:flex; }
+#solution-card { background:linear-gradient(135deg, rgba(10,30,60,0.95), rgba(5,15,35,0.98)); border:1px solid rgba(80,180,240,0.35); border-radius:16px; padding:20px; max-width:480px; width:90%; position:relative; }
+#solution-close { position:absolute; top:8px; right:12px; background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer; }
+.sol-title { font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:12px; }
+.sol-steps { list-style:none; }
+.sol-steps li { padding:6px 0; font-size:11px; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.03); counter-increment:step; }
+.sol-steps li::before { content:counter(step); display:inline-block; width:18px; height:18px; line-height:18px; text-align:center; background:var(--accent-ice); color:#060d1a; border-radius:50%; font-size:9px; font-weight:700; margin-right:8px; }
+.sol-effect { margin-top:12px; padding:8px 12px; background:rgba(34,197,94,0.05); border-radius:8px; font-size:10px; color:#4ade80; }
+
+/* 3D电子围栏发光 */
+.fence-glow { animation:fencePulse 2s ease-in-out infinite; }
+@keyframes fencePulse { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
+
+/* 建筑气泡队列标识 */
+.bubble-queue { font-size:9px; display:block; }
+.bubble-queue.short { color:#22c55e; }
+.bubble-queue.medium { color:#f59e0b; }
+.bubble-queue.long { color:#ef4444; }
+
+/* 套票推荐 */
+.ticket-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.ticket-card { background:rgba(8,20,40,0.6); border:1px solid var(--border-glow); border-radius:8px; padding:10px; font-size:10px; }
+.ticket-card .t-name { font-weight:600; color:var(--text-primary); }
+.ticket-card .t-match { font-size:9px; margin-top:2px; }
+.ticket-card .t-match.strong { color:#22c55e; }
+.ticket-card .t-match.normal { color:#f59e0b; }
+.ticket-card .t-match.weak { color:var(--text-muted); }
+.ticket-card .t-sales { font-size:9px; color:var(--text-muted); margin-top:2px; }
+
+/* 动画人物 */
+.anim-person { position:absolute; font-size:16px; pointer-events:none; z-index:5; transition:all 0.8s ease-out; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 </head>
 <body>
 
@@ -355,6 +510,31 @@ body {
     <div style="height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:6px;">
       <div id="satisfaction-bar" style="height:100%;width:94%;background:linear-gradient(90deg,#fbbf24,#34d399);border-radius:2px;transition:width 1s;"></div>
     </div>
+  </div>
+</div>
+
+  <!-- AI客流预测面板 -->
+  <div id="predict-panel" style="margin-top:10px;">
+    <div class="panel-title">🤖 AI客流预测 (置信度92%)</div>
+    <div class="predict-chart" id="predict-chart"></div>
+    <div class="predict-list" id="predict-list"></div>
+  </div>
+
+  <!-- 游客画像面板 -->
+  <div id="profile-panel" style="margin-top:10px;">
+    <div class="panel-title">👥 游客画像分析</div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🗺️ 客源地分布</div>
+    <div class="profile-chart" id="profile-source-chart" style="height:130px;"></div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">📊 年龄结构</div>
+    <div class="profile-chart" id="profile-age-chart" style="height:100px;"></div>
+    <div style="font-size:10px;font-weight:600;color:var(--accent-ice);margin-top:6px;margin-bottom:4px;">🚩 出行类型</div>
+    <div class="profile-chart" id="profile-type-chart" style="height:110px;"></div>
+  </div>
+
+  <!-- 旅行社入园数据 -->
+  <div id="agency-panel" style="margin-top:10px;">
+    <div class="panel-title">🚩 旅行社入园数据</div>
+    <div id="agency-list"></div>
   </div>
 </div>
 
@@ -418,6 +598,100 @@ body {
 <div id="alert-panel">
   <div class="panel-title" style="margin-bottom:8px;">⚠️ 实时预警信息</div>
   <div id="alert-list"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     新增HTML：详情钻取 | 业态营收Tab | 业态融合Tab
+     AI预测 | 语义分析增强 | 服务短板 | 解决方案
+     ══════════════════════════════════════════════ -->
+
+<!-- 详情钻取弹窗 -->
+<div id="detail-modal" onclick="if(event.target===this)closeDetail()">
+  <div id="detail-card">
+    <button id="detail-close" onclick="closeDetail()">&times;</button>
+    <div class="detail-header">
+      <span class="detail-icon" id="dt-icon">🏰</span>
+      <div><div class="detail-name" id="dt-name">冰晶城堡</div><span class="detail-type" id="dt-type">塔楼</span></div>
+    </div>
+    <div class="detail-kpis">
+      <div class="detail-kpi"><div class="kpi-val" id="dt-count">320</div><div class="kpi-label">当前人数</div><div class="kpi-hint">实时客流</div></div>
+      <div class="detail-kpi"><div class="kpi-val" id="dt-queue">5分钟</div><div class="kpi-label">预估时间</div><div class="kpi-hint">排队等候</div></div>
+      <div class="detail-kpi"><div class="kpi-val" id="dt-ratio">64%</div><div class="kpi-label">满载率</div><div class="kpi-hint">当前/容量</div></div>
+      <div class="detail-kpi"><div class="kpi-val" id="dt-status">🟢</div><div class="kpi-label">状态</div><div class="kpi-hint" id="dt-status-hint">正常运营</div></div>
+    </div>
+    <div class="detail-chart" id="dt-chart"></div>
+    <div class="detail-info" id="dt-info">
+      <div class="info-row"><span class="info-label">电子围栏</span><span class="info-val" id="dt-fence">正常</span></div>
+      <div class="info-row"><span class="info-label">监控覆盖</span><span class="info-val" id="dt-cam">8路在线</span></div>
+      <div class="info-row"><span class="info-label">安全等级</span><span class="info-val" id="dt-safety">A级</span></div>
+      <div class="info-row"><span class="info-label">建议措施</span><span class="info-val" id="dt-suggest">正常运营</span></div>
+    </div>
+    <div class="detail-actions">
+      <div class="detail-btn" onclick="focusBuilding()">📍 聚焦建筑</div>
+      <div class="detail-btn warn" id="dt-btn-warn" onclick="alert('已通知现场人员')">📢 通知现场</div>
+      <div class="detail-btn danger" id="dt-btn-evac" style="display:none" onclick="alert('疏散预案已启动')">🚨 启动疏散</div>
+    </div>
+  </div>
+</div>
+
+<!-- 解决方案弹窗 -->
+<div id="solution-modal" onclick="if(event.target===this)closeSolution()">
+  <div id="solution-card">
+    <button id="solution-close" onclick="closeSolution()">&times;</button>
+    <div class="sol-title" id="sol-title">改进方案</div>
+    <ol class="sol-steps" id="sol-steps"></ol>
+    <div class="sol-effect" id="sol-effect"></div>
+  </div>
+</div>
+
+<!-- 业态营收Tab (右侧面板) -->
+<div id="revenue-panel" class="panel show" style="position:fixed; right:312px; top:72px; width:280px; max-height:320px; overflow-y:auto;">
+  <div class="panel-title" style="margin-bottom:8px;">💰 业态营收概览</div>
+  <div class="rev-tabs">
+    <div class="rev-tab active" onclick="switchRevTab('summary',this)">总览</div>
+    <div class="rev-tab" onclick="switchRevTab('detail',this)">明细</div>
+    <div class="rev-tab" onclick="switchRevTab('chart',this)">趋势</div>
+  </div>
+  <div id="rev-summary">
+    <div class="rev-row"><span class="rev-name">今日总营收</span><span class="rev-val" id="rev-total" style="font-size:16px;color:var(--accent-ice);">¥0</span></div>
+    <div class="rev-row"><span class="rev-name">门票收入</span><span class="rev-val" id="rev-ticket">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-ticket" style="width:0%"></div></div></div>
+    <div class="rev-row"><span class="rev-name">酒店住宿</span><span class="rev-val" id="rev-hotel">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-hotel" style="width:0%"></div></div></div>
+    <div class="rev-row"><span class="rev-name">餐饮消费</span><span class="rev-val" id="rev-dining">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-dining" style="width:0%"></div></div></div>
+    <div class="rev-row"><span class="rev-name">零售购物</span><span class="rev-val" id="rev-retail">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-retail" style="width:0%"></div></div></div>
+    <div class="rev-row"><span class="rev-name">停车收入</span><span class="rev-val" id="rev-parking">¥0</span><div class="rev-bar"><div class="rev-bar-fill" id="rev-bar-parking" style="width:0%"></div></div></div>
+  </div>
+  <div id="rev-detail" style="display:none;">
+    <div class="rev-detail" id="rev-detail-content"></div>
+  </div>
+  <div id="rev-chart" style="display:none;">
+    <div class="rev-chart" id="rev-chart-canvas"></div>
+  </div>
+</div>
+
+<!-- 业态融合Tab (右侧面板) -->
+<div id="integration-panel" class="panel show" style="position:fixed; right:312px; top:400px; width:280px; max-height:280px; overflow-y:auto;">
+  <div class="panel-title" style="margin-bottom:8px;">🔗 业态融合分析</div>
+  <div class="int-section">
+    <div class="int-section-title">RFM客群分层</div>
+    <div class="rfm-grid">
+      <div class="rfm-cell"><div class="rfm-pct" style="color:#f59e0b;" id="rfm-high">23%</div><div class="rfm-label">高价值</div></div>
+      <div class="rfm-cell"><div class="rfm-pct" style="color:#22c55e;" id="rfm-active">41%</div><div class="rfm-label">活跃型</div></div>
+      <div class="rfm-cell"><div class="rfm-pct" style="color:#3b82f6;" id="rfm-potential">22%</div><div class="rfm-label">潜力型</div></div>
+      <div class="rfm-cell"><div class="rfm-pct" style="color:var(--text-muted);" id="rfm-atrisk">14%</div><div class="rfm-label">流失风险</div></div>
+    </div>
+  </div>
+  <div class="int-section">
+    <div class="int-section-title">消费转化漏斗</div>
+    <div id="funnel-container"></div>
+  </div>
+  <div class="int-section">
+    <div class="int-section-title">交叉业态关联</div>
+    <div class="cross-chart" id="cross-chart"></div>
+  </div>
+  <div class="int-section">
+    <div class="int-section-title">🎫 套票推荐</div>
+    <div class="ticket-grid" id="ticket-grid"></div>
+  </div>
 </div>
 
 <canvas id="three-canvas"></canvas>
@@ -989,6 +1263,7 @@ function createBuilding(x, z, config) {
     group.add(basicRoof);
   }
 
+  group.userData.building = config;
   return group;
 }
 
@@ -1015,9 +1290,13 @@ const buildingDefs = [
   { x: -2, z: -14, type: 'gate', height: 7, width: 4, depth: 2, color: '#76bce2', roofColor: '#9cd0f0', label: '南入口', density: 510 },
 ];
 
-buildingDefs.forEach(def => {
+const buildingGroups = [];
+
+  buildingDefs.forEach(def => {
   const bld = createBuilding(def.x, def.z, def);
   scene.add(bld);
+  def._group = bld;
+  buildingGroups.push(bld);
   buildings.push({ group: bld, ...def });
 });
 
@@ -1172,64 +1451,7 @@ function updateCameras() {
   });
 }
 
-// ── Review Data ──
-const reviewPool = [
-  { text: '冰雪大世界太震撼了！冰雕晶莹剔透，灯光秀绝美！', sentiment: 'pos', source: '携程', time: '2分钟前' },
-  { text: '排队时间太长了，零下20度冻得受不了……', sentiment: 'neg', source: '美团', time: '5分钟前' },
-  { text: '冰滑梯太刺激了，孩子玩了三遍还不肯走！', sentiment: 'pos', source: '大众点评', time: '8分钟前' },
-  { text: '整体不错，性价比还可以，就是餐饮有点贵', sentiment: 'neutral', source: '携程', time: '12分钟前' },
-  { text: '夜景比白天美十倍，强烈建议晚上去！', sentiment: 'pos', source: '抖音', time: '15分钟前' },
-  { text: '工作人员服务态度有待提高，问路爱理不理', sentiment: 'neg', source: '微博', time: '18分钟前' },
-  { text: '冰雪大舞台的演出太精彩了，值回票价！', sentiment: 'pos', source: '小红书', time: '22分钟前' },
-  { text: '停车场指示不清晰，找了半小时才找到车', sentiment: 'neg', source: '美团', time: '25分钟前' },
-  { text: '建议自带热水和暖宝宝，园内物价偏高', sentiment: 'neutral', source: '知乎', time: '30分钟前' },
-  { text: '第一次看到这么大规模的冰建筑，太壮观了', sentiment: 'pos', source: '携程', time: '35分钟前' },
-  { text: '电子导览很方便，跟着地图走不迷路', sentiment: 'pos', source: '小程序', time: '40分钟前' },
-  { text: '厕所卫生状况一般，高峰期还需要排队', sentiment: 'neg', source: '大众点评', time: '45分钟前' },
-];
-
-let reviewQueue = [...reviewPool];
-
-function updateReviews() {
-  // Rotate review queue
-  if (Math.random() < 0.3) {
-    const r = reviewQueue.shift();
-    reviewQueue.push(r);
-  }
-
-  const feed = document.getElementById('review-feed');
-  // Show latest 4 reviews
-  const latest = reviewQueue.slice(0, 4);
-  feed.innerHTML = latest.map(r => {
-    const cls = r.sentiment === 'neg' ? 'negative' : r.sentiment === 'pos' ? 'positive' : '';
-    const sentCls = r.sentiment === 'neg' ? 'neg' : r.sentiment === 'pos' ? 'pos' : 'neutral';
-    const sentLabel = r.sentiment === 'neg' ? '😞 负面' : r.sentiment === 'pos' ? '😊 正面' : '😐 中性';
-    return `<div class="review-item ${cls}">
-      <div class="review-text">"${r.text}"</div>
-      <div class="review-meta">
-        <span>${r.source} · ${r.time}</span>
-        <span class="review-sentiment ${sentCls}">${sentLabel}</span>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Update sentiment stats
-  const posCount = reviewPool.filter(r => r.sentiment === 'pos').length;
-  const neuCount = reviewPool.filter(r => r.sentiment === 'neutral').length;
-  const negCount = reviewPool.filter(r => r.sentiment === 'neg').length;
-  const total = posCount + neuCount + negCount;
-  const posPct = Math.round(posCount / total * 100);
-  const neuPct = Math.round(neuCount / total * 100);
-  const negPct = 100 - posPct - neuPct;
-
-  document.getElementById('sent-pos').style.width = posPct + '%';
-  document.getElementById('sent-neu').style.width = neuPct + '%';
-  document.getElementById('sent-neg').style.width = negPct + '%';
-  document.getElementById('sent-pos-val').textContent = posPct + '%';
-  document.getElementById('sent-neu-val').textContent = neuPct + '%';
-  document.getElementById('sent-neg-val').textContent = negPct + '%';
-}
-
+// ── Review Data (moved to new system below) ──
 // ── Inspection Data ──
 const inspectionTasks = [
   { name: '冰晶城堡安全巡检', status: 'done', time: '08:30' },
@@ -1260,6 +1482,22 @@ function switchTab(tab, el) {
   document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
   document.getElementById('tab-camera').style.display = tab === 'camera' ? 'block' : 'none';
   document.getElementById('tab-review').style.display = tab === 'review' ? 'block' : 'none';
+
+  // Tab切换后刷新ECharts图表（修复display:none → visible后尺寸为0的问题）
+  if (tab === 'review') {
+    setTimeout(() => {
+      updateReviews();
+      updateSemanticAnalysis();
+      ['sentiment-chart', 'service-chart'].forEach(id => {
+        if (echartsInstances[id]) echartsInstances[id].resize();
+      });
+    }, 100);
+  }
+  if (tab === 'overview') {
+    setTimeout(() => {
+      if (echartsInstances['predict-chart']) echartsInstances['predict-chart'].resize();
+    }, 100);
+  }
 }
 window.switchTab = switchTab;
 
@@ -1292,7 +1530,13 @@ function updateData() {
 
   // Update bubbles
   bubbles.forEach(bub => {
-    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span>`;
+    const ccap = bub.building.width * bub.building.depth * 12;
+      const cr = bub.building.density / Math.max(1, ccap);
+      const cqm = Math.round(cr * 45);
+      let cqc = '#22c55e';
+      if (cr > 0.85) cqc = '#ef4444';
+      else if (cr > 0.6) cqc = '#f59e0b';
+      bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span><br><span style="font-size:9px;color:${cqc}">🕐~${cqm}分钟</span>`;
   });
 }
 
@@ -1480,6 +1724,37 @@ let dataUpdateTimer = 0;
 let zoneUpdateTimer = 0;
 
 function animate() {
+  // ── 每帧平滑更新 ──
+  const frameNow = performance.now();
+  if (!window._lf) window._lf = frameNow;
+  const fd = (frameNow - window._lf) / 1000;
+  window._lf = frameNow;
+  lerpData(Math.min(0.1, fd));
+
+  // 每秒定期更新
+  if (!window._ls) window._ls = 0;
+  if (frameNow - window._ls > 1000) { window._ls = frameNow; periodicUpdate(); }
+
+  // 每5秒刷新数据目标
+  if (!window._ld) window._ld = 0;
+  if (frameNow - window._ld > 5000) { window._ld = frameNow; tickDataTargets(); }
+
+  // 电子围栏颜色更新
+  buildingDefs.forEach(b => {
+    const cap = b.width * b.depth * 12;
+    updateFenceHeatmap(b.label, b.density / Math.max(1, cap));
+  });
+
+  // 围栏脉冲动画
+  Object.values(fences).forEach(f => {
+    f.lines.children.forEach(c => {
+      if (c.userData && c.userData.baseY !== undefined) {
+        c.position.y = c.userData.baseY + Math.sin(frameNow * 0.004 + c.userData.phase) * 0.3;
+        c.material.opacity = 0.3 + Math.abs(Math.sin(frameNow * 0.004 + c.userData.phase)) * 0.5;
+      }
+    });
+  });
+
   requestAnimationFrame(animate);
 
   const dt = Math.min(clock.getDelta(), 0.1);
@@ -1553,10 +1828,1198 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+/* ══════════════════════════════════════════════
+   JS Part 1: ECharts初始化 | 电子围栏 | 数据平滑 | WebSocket
+   插入点: 基础DOM引用之后, Start之前
+   ══════════════════════════════════════════════ */
+
+// ── ECharts 实例池 ──
+const echartsInstances = {};
+
+function getOrCreateChart(domId) {
+  if (echartsInstances[domId]) {
+    echartsInstances[domId].dispose();
+  }
+  const dom = document.getElementById(domId);
+  if (!dom) return null;
+  const chart = echarts.init(dom);
+  echartsInstances[domId] = chart;
+  return chart;
+}
+
+function resizeAllCharts() {
+  Object.values(echartsInstances).forEach(c => { try { c.resize(); } catch(e) {} });
+}
+window.addEventListener('resize', () => setTimeout(resizeAllCharts, 200));
+
+// ── 电子围栏系统 ──
+const fences = {}; // { buildingLabel: { group, pillars, area, lines } }
+
+const FENCE_COLORS = {
+  low:    { main: 0x22c55e, glow: 0x4ade80, alpha: 0.15 },
+  medium: { main: 0xf59e0b, glow: 0xfbbf24, alpha: 0.25 },
+  high:   { main: 0xef4444, glow: 0xf87171, alpha: 0.35 },
+};
+
+function createFence(building, bldGroup) {
+  const bx = building.x, bz = building.z;
+  const hw = (building.width || 4) / 2 + 1.8;
+  const hd = (building.depth || 4) / 2 + 1.8;
+  const corners = [
+    { x: bx - hw, z: bz - hd },
+    { x: bx + hw, z: bz - hd },
+    { x: bx + hw, z: bz + hd },
+    { x: bx - hw, z: bz + hd },
+  ];
+
+  const fenceGroup = new THREE.Group();
+  const pillars = [];
+
+  // 4根角柱
+  corners.forEach(c => {
+    const pillarGeo = new THREE.CylinderGeometry(0.2, 0.25, 2.2, 8);
+    const pillarMat = new THREE.MeshPhongMaterial({ color: 0x38bdf8, emissive: 0x1c5cab, emissiveIntensity: 0.6, transparent: true, opacity: 0.8 });
+    const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+    pillar.position.set(c.x, 1.1, c.z);
+    fenceGroup.add(pillar);
+    pillars.push(pillar);
+
+    // 柱顶发光球
+    const ballGeo = new THREE.SphereGeometry(0.22, 8, 8);
+    const ballMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.9 });
+    const ball = new THREE.Mesh(ballGeo, ballMat);
+    ball.position.set(c.x, 2.3, c.z);
+    fenceGroup.add(ball);
+  });
+
+  // 区域面
+  const areaGeo = new THREE.PlaneGeometry(hw * 2, hd * 2);
+  const areaMat = new THREE.MeshBasicMaterial({ color: 0x22c55e, side: THREE.DoubleSide, transparent: true, opacity: 0.25, depthWrite: false });
+  const area = new THREE.Mesh(areaGeo, areaMat);
+  area.rotation.x = -Math.PI / 2;
+  area.position.y = 0.05;
+  fenceGroup.add(area);
+
+  // 4条连线
+  const lineGroup = new THREE.Group();
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4;
+    const points = [
+      new THREE.Vector3(corners[i].x, 0.15, corners[i].z),
+      new THREE.Vector3(corners[j].x, 0.15, corners[j].z),
+    ];
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7, depthTest: true });
+    lineGroup.add(new THREE.Line(lineGeo, lineMat));
+
+    // 脉冲段
+    const midX = (corners[i].x + corners[j].x) / 2;
+    const midZ = (corners[i].z + corners[j].z) / 2;
+    const pulseGeo = new THREE.SphereGeometry(0.15, 6, 6);
+    const pulseMat = new THREE.MeshBasicMaterial({ color: 0x00d4ff, transparent: true, opacity: 0.7 });
+    const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+    pulse.position.set(midX, 0.15, midZ);
+    pulse.userData = { baseY: 0.15, phase: i * Math.PI / 2 };
+    lineGroup.add(pulse);
+  }
+  fenceGroup.add(lineGroup);
+
+  scene.add(fenceGroup);
+  fences[building.label] = { group: fenceGroup, pillars, area, lines: lineGroup, corners, building };
+  return fenceGroup;
+}
+
+function getFenceColor(ratio) {
+  if (ratio < 0.6) return FENCE_COLORS.low;
+  if (ratio < 0.85) return FENCE_COLORS.medium;
+  return FENCE_COLORS.high;
+}
+
+function updateFenceHeatmap(label, ratio) {
+  const fence = fences[label];
+  if (!fence) return;
+  const fc = getFenceColor(ratio);
+  fence.area.material.color.set(fc.main);
+  fence.area.material.opacity = fc.alpha;
+  fence.pillars.forEach(p => {
+    p.material.color.set(fc.main);
+    p.material.emissive.set(fc.glow);
+  });
+  fence.lines.children.forEach(c => {
+    if (c.material && c.material.color) c.material.color.set(fc.main);
+  });
+}
+
+// ── 数据平滑系统 (Lerp) ──
+const smoothState = {};
+buildingDefs.forEach(b => {
+  smoothState[b.label] = {
+    density: { current: b.density, target: b.density },
+    queue: { current: 5, target: 5 },
+  };
+});
+
+function lerpData(dt) {
+  const speed = Math.min(1, dt * 2.5);
+  buildingDefs.forEach(b => {
+    const s = smoothState[b.label];
+    s.density.current += (s.density.target - s.density.current) * speed;
+    s.queue.current += (s.queue.target - s.queue.current) * speed;
+    b.density = Math.round(s.density.current);
+    b._queue = Math.round(s.queue.current);
+  });
+}
+
+// 每5秒微调目标值
+let dataTicker = 0;
+function tickDataTargets() {
+  dataTicker++;
+  buildingDefs.forEach(b => {
+    const s = smoothState[b.label];
+    const capacity = b.width * b.depth * 12;
+    // 客流微调
+    const drift = (Math.random() - 0.5) * capacity * 0.08;
+    s.density.target = Math.max(capacity * 0.15, Math.min(capacity * 0.95, s.density.target + drift));
+    // 排队从密度推导: ratio越高排队越长
+    const ratio = s.density.target / capacity;
+    s.queue.target = Math.round(ratio * 45 + Math.random() * 5);
+  });
+}
+
+// ── WebSocket 实时数据 ──
+let wsConnected = false;
+let useWebSocket = true;
+function connectWebSocket() {
+  try {
+    const ws = new WebSocket('ws://localhost:8765');
+    ws.onopen = () => {
+      wsConnected = true;
+      console.log('%c🔗 WebSocket 已连接', 'color:#22c55e;');
+    };
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.buildings) {
+          data.buildings.forEach(bd => {
+            const def = buildingDefs.find(d => d.label === bd.label);
+            if (def && smoothState[bd.label]) {
+              smoothState[bd.label].density.target = bd.density || def.density;
+              smoothState[bd.label].queue.target = bd.queue || Math.round((bd.density || def.density) / (def.width * def.depth * 12) * 45);
+            }
+          });
+        }
+        if (data.totalVisitors) document.getElementById('current-visitors').textContent = data.totalVisitors.toLocaleString();
+        if (data.revenue) {
+          document.getElementById('rev-total').textContent = '¥' + (data.revenue.total || 0).toLocaleString();
+          document.getElementById('rev-ticket').textContent = '¥' + (data.revenue.ticket || 0).toLocaleString();
+          document.getElementById('rev-hotel').textContent = '¥' + (data.revenue.hotel || 0).toLocaleString();
+          document.getElementById('rev-dining').textContent = '¥' + (data.revenue.dining || 0).toLocaleString();
+          document.getElementById('rev-retail').textContent = '¥' + (data.revenue.retail || 0).toLocaleString();
+          document.getElementById('rev-parking').textContent = '¥' + (data.revenue.parking || 0).toLocaleString();
+        }
+        if (data.reviews) {
+          data.reviews.forEach(r => { reviewQueue.unshift(r); });
+          if (reviewQueue.length > 50) reviewQueue.length = 50;
+          updateReviews();
+        }
+      } catch(e) {}
+    };
+    ws.onclose = () => { wsConnected = false; console.log('WebSocket 断开, 3秒后重连...'); setTimeout(connectWebSocket, 3000); };
+    ws.onerror = () => { useWebSocket = false; };
+  } catch(e) { useWebSocket = false; }
+}
+
+// 初始化WebSocket
+setTimeout(connectWebSocket, 1000);
+/* ══════════════════════════════════════════════
+   JS Part 2: 详情钻取 | AI客流预测 | 语义分析 | 服务短板
+   ══════════════════════════════════════════════ */
+
+// ── 详情钻取弹窗 ──
+let detailBuilding = null;
+let detailChart = null;
+
+function openDetail(building, bldGroup) {
+  detailBuilding = building;
+  document.getElementById('detail-modal').classList.add('show');
+  const iconMap = { tower:'🏰', palace:'🏛️', slide:'🎢', dome:'🎪', gate:'⛩️', pagoda:'🗼', sculptures:'🎨', flat:'🅿️' };
+  const typeMap = { tower:'塔楼', palace:'宫殿', slide:'冰滑梯', dome:'穹顶', gate:'大门', pagoda:'宝塔', sculptures:'冰雕花园', flat:'停车场' };
+  document.getElementById('dt-icon').textContent = iconMap[building.type] || '🏢';
+  document.getElementById('dt-name').textContent = building.label;
+  document.getElementById('dt-type').textContent = typeMap[building.type] || building.type;
+
+  const capacity = building.width * building.depth * 12;
+  const ratio = building.density / capacity;
+  const queueMins = Math.round(ratio * 45);
+
+  document.getElementById('dt-count').textContent = Math.round(building.density);
+  document.getElementById('dt-queue').textContent = queueMins + '分钟';
+  document.getElementById('dt-ratio').textContent = Math.round(ratio * 100) + '%';
+
+  // 状态 (不修改标签文字)
+  let statusEmoji, statusHint, safetyLevel;
+  if (ratio < 0.6) { statusEmoji = '🟢'; statusHint = '正常运营'; safetyLevel = 'A级'; }
+  else if (ratio < 0.85) { statusEmoji = '🟡'; statusHint = '较为繁忙'; safetyLevel = 'B级'; }
+  else { statusEmoji = '🔴'; statusHint = '接近饱和'; safetyLevel = 'C级'; }
+  document.getElementById('dt-status').textContent = statusEmoji;
+  document.getElementById('dt-status-hint').textContent = statusHint;
+  document.getElementById('dt-fence').textContent = ratio > 0.85 ? '⚠️ 超容预警' : '正常';
+  document.getElementById('dt-cam').textContent = '8路在线';
+  document.getElementById('dt-safety').textContent = safetyLevel;
+  document.getElementById('dt-suggest').textContent = ratio > 0.85 ? '建议限流分流' : ratio > 0.6 ? '关注排队状况' : '正常运营';
+
+  // 预警按钮
+  const btnWarn = document.getElementById('dt-btn-warn');
+  const btnEvac = document.getElementById('dt-btn-evac');
+  btnWarn.style.display = ratio > 0.6 ? '' : 'none';
+  btnEvac.style.display = ratio > 0.9 ? '' : 'none';
+
+  // 绘制趋势图
+  setTimeout(() => {
+    const chart = getOrCreateChart('dt-chart');
+    if (!chart) return;
+    detailChart = chart;
+    const now = new Date();
+    const times = [];
+    const values = [];
+    for (let i = 14; i >= 0; i--) {
+      const t = new Date(now - i * 60000);
+      times.push(t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0'));
+      const base = building.density * (0.7 + 0.3 * Math.sin(i / 5 + building.x));
+      values.push(Math.round(base + (Math.random() - 0.5) * 30));
+    }
+    chart.setOption({
+      grid: { top: 8, right: 8, bottom: 20, left: 36 },
+      xAxis: { type: 'category', data: times, axisLabel: { color: '#4a6a8a', fontSize: 9, rotate: 30 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
+      yAxis: { type: 'value', axisLabel: { color: '#4a6a8a', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
+      series: [{
+        type: 'line', data: values, smooth: true,
+        lineStyle: { color: '#38bdf8', width: 2 },
+        itemStyle: { color: '#38bdf8' },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0, color:'rgba(56,189,248,0.3)'}, {offset:1, color:'rgba(56,189,248,0.02)'}
+        ]) },
+        symbol: 'none',
+        markLine: { silent: true, data: [{ yAxis: capacity, label: { formatter: '容量', color: '#ef4444', fontSize: 8 }, lineStyle: { color: '#ef4444', type: 'dashed', width: 1 } }] }
+      }]
+    }, true);
+  }, 100);
+}
+
+function closeDetail() {
+  document.getElementById('detail-modal').classList.remove('show');
+  detailBuilding = null;
+  if (detailChart) { detailChart.dispose(); detailChart = null; }
+}
+
+function focusBuilding() {
+  if (!detailBuilding) return;
+  const b = detailBuilding;
+  controls.target.set(b.x, 3, b.z);
+  camera.position.set(b.x + 12, 15, b.z + 12);
+  controls.update();
+  closeDetail();
+}
+
+// ── AI客流预测 ──
+const weatherFactors = { '晴': 1.08, '多云': 0.95, '阴': 0.88, '小雪': 0.85, '大雪': 0.72 };
+let currentWeather = '晴';
+let currentTemp = -8;
+
+function predictNext7Days(baseVisitors) {
+  const days = [];
+  const weathers = ['晴', '多云', '小雪', '晴', '阴', '晴', '多云'];
+  const temps = [-8, -12, -15, -6, -10, -5, -11];
+  for (let i = 0; i < 7; i++) {
+    const wf = weathersFactors[weathers[i]] || 0.95;
+    const trend = 0.92 + Math.random() * 0.16;
+    const dayBase = i === 0 ? baseVisitors : days[i-1].value;
+    const predicted = Math.round(dayBase * trend * wf);
+    const capacity = 8000 + Math.round(Math.random() * 2000);
+    days.push({
+      date: new Date(Date.now() + (i+1)*86400000),
+      weather: weathers[i], temp: temps[i],
+      value: predicted, capacity,
+      peak: i === 2 || i === 5, // 周末
+    });
+  }
+  return days;
+}
+
+let predictCache = predictNext7Days(6500);
+function refreshPredict() { predictCache = predictNext7Days(6500 + Math.round((Math.random()-0.5)*1000)); }
+
+function updateAIPrediction() {
+  const chart = getOrCreateChart('predict-chart');
+  if (!chart) return;
+
+  const dates = predictCache.map(d => {
+    const dd = d.date;
+    return (dd.getMonth()+1) + '/' + dd.getDate();
+  });
+  const values = predictCache.map(d => d.value);
+  const caps = predictCache.map(d => d.capacity);
+
+  chart.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { data: ['预测客流','容量上限','置信区间'], textStyle: { color: '#8ab4d8', fontSize: 9 }, top: 0 },
+    grid: { top: 24, right: 12, bottom: 24, left: 40 },
+    xAxis: { type: 'category', data: dates, axisLabel: { color: '#4a6a8a', fontSize: 9 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#4a6a8a', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
+    series: [
+      { name: '置信区间', type: 'line', data: values.map(v => v + 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true },
+      { name: '置信区间', type: 'line', data: values.map(v => v - 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true,
+        itemStyle: { opacity: 0 } },
+      { name: '预测客流', type: 'line', data: values, smooth: true, lineStyle: { color: '#38bdf8', width: 2 }, itemStyle: { color: '#38bdf8' }, symbol: 'circle', symbolSize: 4,
+        markLine: { silent: true, symbol: 'none', data: predictCache.filter(d=>d.peak).map(d => ({ xAxis: dates[predictCache.indexOf(d)], label: { formatter:'周末', color:'#f59e0b', fontSize:8 }, lineStyle:{color:'#f59e0b',type:'dotted'} })) } },
+      { name: '容量上限', type: 'line', data: caps, lineStyle: { color: '#ef4444', type: 'dashed', width: 1 }, symbol: 'none', itemStyle: { color: '#ef4444' } },
+    ]
+  }, true);
+
+  // 更新预测列表
+  const list = document.getElementById('predict-list');
+  if (!list) return;
+  list.innerHTML = predictCache.map((d, i) => {
+    const dd = d.date;
+    const dateStr = (dd.getMonth()+1) + '/' + dd.getDate();
+    const dayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+    const dayName = dayNames[dd.getDay()];
+    const trend = i === 0 ? 0 : Math.round((d.value - predictCache[i-1].value) / predictCache[i-1].value * 100);
+    const trendClass = trend >= 0 ? 'up' : 'down';
+    const trendStr = trend >= 0 ? '+' + trend + '%' : trend + '%';
+    const pct = Math.round(d.value / d.capacity * 100);
+    const barColor = pct > 90 ? '#ef4444' : pct > 75 ? '#f59e0b' : '#38bdf8';
+    const warnStr = d.peak ? '⚠️周末' : (pct > 90 ? '⚠️超容' : '');
+    return `<div class="predict-day">
+      <span class="pday">${dateStr}</span><span class="pday" style="font-size:9px;color:var(--text-muted)">${dayName}</span>
+      <span class="pval">${d.value.toLocaleString()}人</span>
+      <span class="ptrend ${trendClass}">${trendStr}</span>
+      <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      <span class="pwarn">${warnStr} ${d.weather}${d.temp}°C</span>
+    </div>`;
+  }).join('');
+}
+setInterval(refreshPredict, 300000); // 每5分钟刷新预测
+
+// ── AI语义分析 ──
+const reviewPool = [
+  { user: '冰雪游客', text: '冰滑梯太刺激了！排队值得', sentiment: 'pos', category: '排队' },
+  { user: '南方小土豆', text: '极光塔的景色很美，就是人有点多', sentiment: 'pos', category: '设施' },
+  { user: '旅行达人', text: '餐饮区的锅包肉很好吃，价格适中', sentiment: 'pos', category: '餐饮' },
+  { user: '带娃妈妈', text: '儿童区的安全措施做得不错', sentiment: 'pos', category: '安全' },
+  { user: '摄影爱好者', text: '冰雕花园非常适合拍照打卡', sentiment: 'pos', category: '设施' },
+  { user: '外地游客', text: '停车位太难找了，等了半小时', sentiment: 'neg', category: '停车' },
+  { user: '学生党', text: '门票有点贵，希望能有更多优惠', sentiment: 'neg', category: '价格' },
+  { user: '滑雪达人', text: '园区卫生需要改善，垃圾桶太少', sentiment: 'neg', category: '卫生' },
+  { user: '情侣出游', text: '排队时间太久了，建议增加窗口', sentiment: 'neg', category: '排队' },
+  { user: '退休老人', text: '冰雪宫殿的建筑很美，值得一看', sentiment: 'pos', category: '设施' },
+  { user: '企业团建', text: '整体体验不错，团队活动很丰富', sentiment: 'pos', category: '综合' },
+  { user: '背包客', text: '指示标识不太清楚，容易迷路', sentiment: 'neg', category: '设施' },
+];
+
+let reviewQueue = [...reviewPool];
+let sentimentHistory = [];
+for (let i = 0; i < 20; i++) {
+  sentimentHistory.push({ time: i, posRate: 0.65 + (Math.random() - 0.5) * 0.2 });
+}
+
+const newReviewTemplates = [
+  { user: '刚入园', text: '刚进来就被冰雪城堡震撼到了！', sentiment: 'pos', category: '设施' },
+  { user: '滑雪爱好者', text: '今天雪道维护得不错，滑得很爽', sentiment: 'pos', category: '设施' },
+  { user: '吃货一枚', text: '美食广场的烤肉串太香了！', sentiment: 'pos', category: '餐饮' },
+  { user: '带娃老爸', text: '梦幻雪圈孩子玩了三遍还不肯走', sentiment: 'pos', category: '设施' },
+  { user: '游客甲', text: '租雪具排队太久了，效率低', sentiment: 'neg', category: '排队' },
+  { user: '自由行', text: '门票价格和项目体验不太匹配', sentiment: 'neg', category: '价格' },
+  { user: '宝妈', text: '母婴室太少而且卫生状况堪忧', sentiment: 'neg', category: '卫生' },
+  { user: '摄影老法师', text: '极光塔日落时分的光影绝美', sentiment: 'pos', category: '设施' },
+];
+
+function analyzeReviewText(text) {
+  const posWords = ['好', '美', '赞', '棒', '喜欢', '刺激', '好吃', '震撼', '绝美', '不错', '丰富', '爽', '值得'];
+  const negWords = ['差', '烂', '糟', '贵', '久', '难', '脏', '乱', '少', '堪忧', '不清楚', '不太'];
+  let score = 0.5;
+  posWords.forEach(w => { if (text.includes(w)) score += 0.08; });
+  negWords.forEach(w => { if (text.includes(w)) score -= 0.1; });
+  return { score: Math.max(0.05, Math.min(0.95, score)), sentiment: score >= 0.45 ? 'pos' : 'neg' };
+}
+
+const categoryKeywords = {
+  '排队': ['排队', '等', '窗口', '队'],
+  '设施': ['设施', '滑梯', '塔', '城堡', '雕塑', '雪圈', '雪具', '标识', '指示'],
+  '餐饮': ['吃', '餐', '美食', '锅包肉', '烤', '串'],
+  '价格': ['价格', '门票', '贵', '优惠', '票价'],
+  '卫生': ['卫生', '垃圾', '脏', '母婴', '干净'],
+  '安全': ['安全', '措施', '保护'],
+  '停车': ['停车', '车位'],
+  '综合': ['整体', '体验', '丰富'],
+};
+
+function classifyReview(text) {
+  for (const [cat, kws] of Object.entries(categoryKeywords)) {
+    for (const kw of kws) { if (text.includes(kw)) return cat; }
+  }
+  return '综合';
+}
+
+// ── 语义分析面板更新 ──
+function updateSemanticAnalysis() {
+  // 情感柱状图
+  const posCount = reviewQueue.filter(r => r.sentiment === 'pos').length;
+  const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
+  const total = posCount + negCount || 1;
+  const posPct = Math.round(posCount / total * 100);
+  const negPct = 100 - posPct;
+
+  const posBar = document.getElementById('sentiment-pos-bar');
+  const negBar = document.getElementById('sentiment-neg-bar');
+  if (posBar) { posBar.style.width = posPct + '%'; posBar.textContent = posPct + '% (' + posCount + '条)'; }
+  if (negBar) { negBar.style.width = negPct + '%'; negBar.textContent = negPct + '% (' + negCount + '条)'; }
+
+  // 关键词云
+  const wordFreq = {};
+  reviewQueue.forEach(r => {
+    r.text.split('').forEach(() => {
+      const words = r.text.match(/[一-龥]{2,4}/g) || [];
+      words.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+    });
+  });
+  // 手动关键词
+  const keyWords = [
+    { text: '排队', freq: reviewQueue.filter(r=>r.text.includes('排队')).length },
+    { text: '设施', freq: reviewQueue.filter(r=>r.text.includes('设施')||r.text.includes('滑梯')).length },
+    { text: '餐饮', freq: reviewQueue.filter(r=>r.text.includes('吃')||r.text.includes('美食')).length },
+    { text: '价格', freq: reviewQueue.filter(r=>r.text.includes('价格')||r.text.includes('贵')).length },
+    { text: '卫生', freq: reviewQueue.filter(r=>r.text.includes('卫生')||r.text.includes('垃圾')).length },
+    { text: '停车', freq: reviewQueue.filter(r=>r.text.includes('停车')).length },
+    { text: '冰雪', freq: reviewQueue.filter(r=>r.text.includes('冰')||r.text.includes('雪')).length },
+    { text: '刺激', freq: reviewQueue.filter(r=>r.text.includes('刺激')).length },
+    { text: '美丽', freq: reviewQueue.filter(r=>r.text.includes('美')).length },
+    { text: '体验', freq: reviewQueue.filter(r=>r.text.includes('体验')).length },
+    { text: '震撼', freq: reviewQueue.filter(r=>r.text.includes('震撼')).length },
+    { text: '人多', freq: reviewQueue.filter(r=>r.text.includes('人多')||r.text.includes('太多')).length },
+  ];
+  keyWords.sort((a, b) => b.freq - a.freq);
+  const maxFreq = keyWords[0]?.freq || 1;
+
+  const cloud = document.getElementById('keyword-cloud');
+  if (cloud) {
+    cloud.innerHTML = keyWords.slice(0, 12).map(kw => {
+      const size = 10 + (kw.freq / maxFreq) * 10;
+      const colors = ['#38bdf8','#22c55e','#f59e0b','#a78bfa','#f472b6','#fb923c'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return `<span class="keyword-tag" style="font-size:${size}px;color:${color};background:${color}15;">${kw.text}</span>`;
+    }).join('');
+  }
+
+  // 情感趋势图
+  const sentChart = getOrCreateChart('sentiment-chart');
+  if (sentChart) {
+    const times = sentimentHistory.map((_, i) => {
+      const m = new Date(Date.now() - (19-i) * 180000);
+      return m.getHours().toString().padStart(2,'0') + ':' + m.getMinutes().toString().padStart(2,'0');
+    });
+    sentChart.setOption({
+      grid: { top: 8, right: 8, bottom: 16, left: 32 },
+      xAxis: { type: 'category', data: times, axisLabel: { color: '#4a6a8a', fontSize: 8 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
+      yAxis: { type: 'value', min: 0, max: 1, axisLabel: { color: '#4a6a8a', fontSize: 8, formatter: v => Math.round(v*100)+'%' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
+      series: [{
+        type: 'line', data: sentimentHistory.map(s => s.posRate), smooth: true,
+        lineStyle: { color: '#22c55e', width: 2 },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0, color:'rgba(34,197,94,0.2)'}, {offset:1, color:'rgba(34,197,94,0.02)'}
+        ]) },
+        symbol: 'none',
+      }]
+    }, true);
+  }
+}
+
+// ── 服务短板分析 ──
+function analyzeServiceGaps() {
+  const gaps = [];
+  const metrics = {
+    '排队管理': { val: 0, weight: 0.25 },
+    '游客口碑': { val: 0, weight: 0.2 },
+    '容量管理': { val: 0, weight: 0.2 },
+    '满意度': { val: 0, weight: 0.15 },
+    '设施可用性': { val: 0, weight: 0.1 },
+    '安全指数': { val: 0, weight: 0.1 },
+  };
+
+  // 排队管理评分
+  const avgQueue = buildingDefs.reduce((s, b) => {
+    const cap = b.width * b.depth * 12;
+    return s + (b.density / cap * 45);
+  }, 0) / buildingDefs.length;
+  metrics['排队管理'].val = Math.max(0, 100 - avgQueue * 3);
+
+  // 游客口碑
+  const posRate = reviewQueue.filter(r => r.sentiment === 'pos').length / Math.max(1, reviewQueue.length);
+  metrics['游客口碑'].val = posRate * 100;
+
+  // 容量管理
+  const overloadCount = buildingDefs.filter(b => b.density / (b.width * b.depth * 12) > 0.85).length;
+  metrics['容量管理'].val = Math.max(0, 100 - overloadCount / buildingDefs.length * 100);
+
+  // 满意度
+  metrics['满意度'].val = 60 + Math.random() * 25;
+
+  // 设施可用性
+  const offlineFacilities = 1 + Math.floor(Math.random() * 3);
+  metrics['设施可用性'].val = Math.max(0, 100 - offlineFacilities * 10);
+
+  // 安全指数
+  metrics['安全指数'].val = 75 + Math.random() * 20;
+
+  // 生成短板列表
+  Object.entries(metrics).forEach(([name, m]) => {
+    if (m.val < 45) {
+      gaps.push({ name, value: Math.round(m.val), severity: 'critical' });
+    } else if (m.val < 65) {
+      gaps.push({ name, value: Math.round(m.val), severity: 'major' });
+    } else if (m.val < 80) {
+      gaps.push({ name, value: Math.round(m.val), severity: 'minor' });
+    }
+  });
+
+  return { metrics, gaps };
+}
+
+function updateServiceGaps() {
+  const { metrics, gaps } = analyzeServiceGaps();
+
+  // 雷达图
+  const chart = getOrCreateChart('service-chart');
+  if (chart) {
+    const names = Object.keys(metrics);
+    const values = Object.values(metrics).map(m => Math.round(m.val));
+    chart.setOption({
+      radar: {
+        center: ['50%', '50%'], radius: '65%',
+        indicator: names.map(n => ({ name: n, max: 100 })),
+        axisName: { color: '#8ab4d8', fontSize: 9 },
+        splitArea: { areaStyle: { color: ['rgba(56,189,248,0.02)', 'rgba(56,189,248,0.04)'] } },
+        splitLine: { lineStyle: { color: 'rgba(80,180,240,0.15)' } },
+        axisLine: { lineStyle: { color: 'rgba(80,180,240,0.2)' } },
+      },
+      series: [{
+        type: 'radar',
+        data: [{ value: values, name: '当前水平', areaStyle: { color: 'rgba(56,189,248,0.2)' }, lineStyle: { color: '#38bdf8', width: 2 }, itemStyle: { color: '#38bdf8' } }],
+        symbol: 'circle', symbolSize: 3,
+      }]
+    }, true);
+  }
+
+  // 短板列表
+  const list = document.getElementById('gap-list');
+  if (list) {
+    const severityLabel = { critical: '严重', major: '较重', minor: '轻微' };
+    list.innerHTML = gaps.slice(0, 5).map(g => `
+      <div class="gap-item">
+        <div class="gap-severity ${g.severity}"></div>
+        <span class="gap-name">${g.name}</span>
+        <span class="gap-val">${g.value}分</span>
+        <span class="gap-action" onclick="showSolution('${g.name}',${g.value})">查看方案 →</span>
+      </div>
+    `).join('') || '<div style="font-size:10px;color:var(--text-muted);padding:8px;">✅ 暂无服务短板</div>';
+  }
+}
+
+// ── 解决方案弹窗 ──
+const solutionPlans = {
+  '排队管理': { steps: ['增加临时售票/服务窗口2-3个', '启用快速通道用于低峰时段分流', '部署移动式排队围栏优化动线', '实时推送各区域排队时长至小程序'], effect: '预计排队时间缩短30-40%, 游客满意度提升15-20%' },
+  '游客口碑': { steps: ['针对负面反馈高频问题专项整改', '加强员工服务意识培训', '建立游客投诉快速响应机制(30分钟内)', '推出满意度调查问卷收集改进建议'], effect: '预计正面评价率提升至75%以上, 复游率提升10%' },
+  '容量管理': { steps: ['超容区域启动限流措施(单向通行)', '引导游客向低密度区域分流', '增设临时缓冲区/等候区', '动态调整各区域开放时间'], effect: '预计超容区域减少60%, 游客体验显著改善' },
+  '设施可用性': { steps: ['安排维修人员24小时轮值', '建立设施故障快速响应机制', '储备关键备件缩短维修时间', '增设临时替代设施'], effect: '预计设施可用率提升至95%以上, 投诉减少50%' },
+};
+solutionPlans['满意度'] = solutionPlans['游客口碑'];
+solutionPlans['安全指数'] = { steps: ['加强重点区域安全巡查频次', '检查并更新安全警示标识', '组织安全应急演练', '增设紧急呼叫点'], effect: '预计安全隐患整改率达100%, 安全等级提升至A级' };
+
+function showSolution(name, score) {
+  const plan = solutionPlans[name] || solutionPlans['排队管理'];
+  document.getElementById('sol-title').textContent = `📋 ${name} 改进方案 (当前${score}分)`;
+  document.getElementById('sol-steps').innerHTML = plan.steps.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('sol-effect').textContent = '📈 ' + plan.effect;
+  document.getElementById('solution-modal').classList.add('show');
+}
+
+function closeSolution() {
+  document.getElementById('solution-modal').classList.remove('show');
+}
+/* ══════════════════════════════════════════════
+   JS Part 3: 业态营收 | 业态融合 | 监控增强 | 评论重写 | 队列修复 | 启动修改
+   ══════════════════════════════════════════════ */
+
+// ── 业态营收 ──
+let revTabMode = 'summary';
+let revPieChart = null;
+let revTrendChart = null;
+
+function switchRevTab(mode, el) {
+  revTabMode = mode;
+  document.querySelectorAll('#revenue-panel .rev-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('rev-summary').style.display = mode === 'summary' ? '' : 'none';
+  document.getElementById('rev-detail').style.display = mode === 'detail' ? '' : 'none';
+  document.getElementById('rev-chart').style.display = mode === 'chart' ? '' : 'none';
+  if (mode === 'chart') setTimeout(updateRevenueChart, 150);
+}
+
+function updateRevenueDetail() {
+  const totalVisitors = buildingDefs.reduce((s, b) => s + b.density, 0);
+  // 基于实时数据的多业态营收联动计算
+  const hour = new Date().getHours();
+  const isPeak = (hour >= 10 && hour <= 15) || (hour >= 18 && hour <= 20);
+  const weatherMod = dataState.weatherType.includes('晴') ? 1.2 : dataState.weatherType.includes('雪') ? 0.85 : 1.0;
+  const peakMod = isPeak ? 1.35 : 0.75;
+
+  // 门票：购票率受天气/高峰影响
+  const avgTicket = 180;
+  const ticketRate = 0.75 * weatherMod;
+  const ticketRev = Math.round(totalVisitors * avgTicket * ticketRate);
+
+  // 酒店：约12%游客住宿，均价380
+  const hotelGuests = Math.round(totalVisitors * 0.12 * peakMod);
+  const hotelRev = Math.round(hotelGuests * 380);
+
+  // 餐饮：约55%游客就餐，人均60
+  const diningGuests = Math.round(totalVisitors * 0.55 * peakMod);
+  const diningRev = Math.round(diningGuests * 60);
+
+  // 零售：约30%游客购物，人均85
+  const retailGuests = Math.round(totalVisitors * 0.30 * peakMod);
+  const retailRev = Math.round(retailGuests * 85);
+
+  // 停车：约20%自驾，15元/车，3人/车
+  const parkingCars = Math.round(totalVisitors * 0.20 * weatherMod / 3);
+  const parkingRev = Math.round(parkingCars * 15);
+
+  const totalRev = ticketRev + hotelRev + diningRev + retailRev + parkingRev;
+
+  document.getElementById('rev-total').textContent = '¥' + totalRev.toLocaleString();
+  document.getElementById('rev-ticket').textContent = '¥' + ticketRev.toLocaleString();
+  document.getElementById('rev-hotel').textContent = '¥' + hotelRev.toLocaleString();
+  document.getElementById('rev-dining').textContent = '¥' + diningRev.toLocaleString();
+  document.getElementById('rev-retail').textContent = '¥' + retailRev.toLocaleString();
+  document.getElementById('rev-parking').textContent = '¥' + parkingRev.toLocaleString();
+
+  const maxRev = Math.max(ticketRev, hotelRev, diningRev, retailRev, parkingRev, 1);
+  document.getElementById('rev-bar-ticket').style.width = (ticketRev / maxRev * 100) + '%';
+  document.getElementById('rev-bar-hotel').style.width = (hotelRev / maxRev * 100) + '%';
+  document.getElementById('rev-bar-dining').style.width = (diningRev / maxRev * 100) + '%';
+  document.getElementById('rev-bar-retail').style.width = (retailRev / maxRev * 100) + '%';
+  document.getElementById('rev-bar-parking').style.width = (parkingRev / maxRev * 100) + '%';
+
+  // 明细
+  const detailContent = document.getElementById('rev-detail-content');
+  if (detailContent) {
+    const items = [
+      { name: '门票收入', val: ticketRev, detail: '均价¥180×入园' + Math.round(totalVisitors*0.7).toLocaleString() + '人' },
+      { name: '酒店住宿', val: hotelRev, detail: '入住率' + Math.round(40 + Math.random()*30) + '%×均价¥380' },
+      { name: '餐饮消费', val: diningRev, detail: '人均¥' + Math.round(diningRev/Math.max(1,totalVisitors*0.5)) },
+      { name: '零售购物', val: retailRev, detail: '转化率' + Math.round(25+Math.random()*20) + '%' },
+      { name: '停车收入', val: parkingRev, detail: Math.round(parkingRev/15) + '车次×¥15' },
+    ];
+    detailContent.innerHTML = items.map(i => `
+      <div class="rev-row"><span class="rev-name">${i.name}</span><span class="rev-val">¥${i.val.toLocaleString()}</span></div>
+      <div style="font-size:9px;color:var(--text-muted);padding:0 8px 4px;">${i.detail}</div>
+    `).join('');
+  }
+}
+
+function updateRevenueChart() {
+  const chart = getOrCreateChart('rev-chart-canvas');
+  if (!chart) return;
+  const hours = ['8时','9时','10时','11时','12时','13时','14时','15时','16时','17时','18时','19时','20时'];
+  const ticketData = hours.map((_, i) => Math.round(20000 + Math.sin(i/3)*15000 + Math.random()*5000));
+  const hotelData = hours.map((_, i) => Math.round(8000 + Math.sin(i/4)*5000 + Math.random()*2000));
+  const diningData = hours.map((_, i) => Math.round(12000 + Math.sin(i/3.5)*8000 + Math.random()*3000));
+  chart.setOption({
+    tooltip: { trigger: 'axis' },
+    legend: { data: ['门票','酒店','餐饮'], textStyle: { color: '#8ab4d8', fontSize: 8 }, top: 0 },
+    grid: { top: 22, right: 8, bottom: 20, left: 40 },
+    xAxis: { type: 'category', data: hours, axisLabel: { color: '#4a6a8a', fontSize: 8 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
+    yAxis: { type: 'value', axisLabel: { color: '#4a6a8a', fontSize: 8, formatter: v => '¥'+(v/1000).toFixed(0)+'k' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
+    series: [
+      { name: '门票', type: 'bar', data: ticketData, itemStyle: { color: '#38bdf8' }, barWidth: '50%' },
+      { name: '酒店', type: 'bar', data: hotelData, itemStyle: { color: '#a78bfa' }, barWidth: '50%' },
+      { name: '餐饮', type: 'bar', data: diningData, itemStyle: { color: '#22c55e' }, barWidth: '50%' },
+    ]
+  }, true);
+}
+
+// ── 业态融合 ──
+function updateIntegrationPanel() {
+  // 消费转化漏斗
+  const funnelContainer = document.getElementById('funnel-container');
+  if (funnelContainer) {
+    const totalV = buildingDefs.reduce((s, b) => s + b.density, 0);
+    const steps = [
+      { label: '入园', val: Math.round(totalV * 0.88), color: '#38bdf8' },
+      { label: '餐饮', val: Math.round(totalV * 0.55), color: '#22c55e' },
+      { label: '零售', val: Math.round(totalV * 0.32), color: '#a78bfa' },
+      { label: '酒店', val: Math.round(totalV * 0.18), color: '#f59e0b' },
+      { label: '二次消费', val: Math.round(totalV * 0.08), color: '#fb923c' },
+    ];
+    const maxV = steps[0].val;
+    funnelContainer.innerHTML = steps.map((s, i) => {
+      const drop = i > 0 ? Math.round((1 - s.val / steps[i-1].val) * 100) : 0;
+      return `<div class="funnel-item">
+        <span class="funnel-label">${s.label}</span>
+        <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${s.val/maxV*100}%;background:${s.color};"></div><span class="funnel-val">${s.val.toLocaleString()}人</span></div>
+        <span class="funnel-drop">${i>0?'↓'+drop+'%':''}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // RFM微调
+  const rfmHigh = 20 + Math.floor(Math.random() * 8);
+  const rfmActive = 38 + Math.floor(Math.random() * 8);
+  const rfmPotential = 20 + Math.floor(Math.random() * 6);
+  document.getElementById('rfm-high').textContent = rfmHigh + '%';
+  document.getElementById('rfm-active').textContent = rfmActive + '%';
+  document.getElementById('rfm-potential').textContent = rfmPotential + '%';
+  document.getElementById('rfm-atrisk').textContent = (100 - rfmHigh - rfmActive - rfmPotential) + '%';
+
+  // 交叉业态关联图
+  const crossChart = getOrCreateChart('cross-chart');
+  if (crossChart) {
+    crossChart.setOption({
+      grid: { top: 8, right: 16, bottom: 20, left: 28 },
+      xAxis: { type: 'category', data: ['门票→餐饮','门票→零售','餐饮→零售','酒店→餐饮','零售→停车'], axisLabel: { color: '#4a6a8a', fontSize: 7, rotate: 15 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
+      yAxis: { type: 'value', name: '%', nameTextStyle: { color: '#4a6a8a', fontSize: 8 }, axisLabel: { color: '#4a6a8a', fontSize: 8 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
+      series: [{
+        type: 'bar', data: [62, 38, 28, 45, 52].map(v => v + Math.floor(Math.random()*10)),
+        itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0, color:'#38bdf8'}, {offset:1, color:'#1c5cab'}
+        ]) }, barWidth: '55%',
+        label: { show: true, position: 'top', color: '#8ab4d8', fontSize: 8, formatter: '{c}%' }
+      }]
+    }, true);
+  }
+
+  // 套票推荐
+  const ticketGrid = document.getElementById('ticket-grid');
+  if (ticketGrid) {
+    const tickets = [
+      { name: '冰雪套票', match: 'strong', matchLabel: '强匹配', sales: 342, desc: '门票+冰滑梯+冰雕', price: '¥298', uplift: '+18' },
+      { name: '家庭套票', match: 'strong', matchLabel: '强匹配', sales: 287, desc: '2大1小+儿童专区', price: '¥568', uplift: '+22' },
+      { name: '夜场套票', match: 'normal', matchLabel: '一般', sales: 156, desc: '16:00后入园+极光秀', price: '¥198', uplift: '+9' },
+      { name: '深度游套票', match: 'weak', matchLabel: '弱匹配', sales: 89, desc: '全部项目+酒店住宿', price: '¥888', uplift: '+5' },
+    ];
+    ticketGrid.innerHTML = tickets.map((t, i) => `
+      <div class="ticket-card" id="ticket-${i}" onclick="selectTicket(${i})" style="cursor:pointer;transition:all 0.3s;">
+        <div class="t-name" style="display:flex;justify-content:space-between;">🎫 ${t.name}<span style="font-size:11px;color:var(--accent-ice);">${t.price}</span></div>
+        <div style="font-size:9px;color:var(--text-muted);">${t.desc}</div>
+        <div class="t-match ${t.match}">• ${t.matchLabel}</div>
+        <div class="t-sales" id="ticket-sales-${i}">今日已售 ${t.sales} 份</div>
+        <div class="t-uplift" id="ticket-uplift-${i}" style="display:none;font-size:9px;color:#22c55e;margin-top:2px;">📈 预估增量: ${t.uplift}% (约${Math.round(t.sales*parseInt(t.uplift)/100)}份)</div>
+        <div class="t-reason" id="ticket-reason-${i}" style="display:none;font-size:9px;color:#f59e0b;margin-top:2px;"></div>
+      </div>
+    `).join('');
+  }
+}
+
+let selectedTicket = -1;
+function selectTicket(idx) {
+  document.querySelectorAll('.ticket-card').forEach(c => {
+    c.style.border = '1px solid var(--border-glow)';
+    c.style.background = 'rgba(8,20,40,0.6)';
+  });
+  document.querySelectorAll('.t-uplift,.t-reason').forEach(e => e.style.display = 'none');
+
+  if (selectedTicket === idx) {
+    selectedTicket = -1;
+    return;
+  }
+  selectedTicket = idx;
+
+  const card = document.getElementById('ticket-' + idx);
+  if (!card) return;
+  card.style.border = '1px solid var(--accent-ice)';
+  card.style.background = 'rgba(56,189,248,0.15)';
+
+  const uplift = document.getElementById('ticket-uplift-' + idx);
+  const reason = document.getElementById('ticket-reason-' + idx);
+  if (uplift) uplift.style.display = 'block';
+  if (reason) {
+    const reasons = [
+      '💡 当前客流高峰，冰雪套票性价比最优',
+      '💡 亲子游客占比22%，推荐家庭套票',
+      '💡 晚间时段来临，夜场套票需求上升',
+      '💡 高价值客群23%，可引导深度游消费'
+    ];
+    reason.textContent = reasons[idx];
+    reason.style.display = 'block';
+  }
+}
+
+// ── 增强监控系统 ──
+const cameraTargetBuildings = [
+  { label: '冰晶城堡', type: 'tower' },
+  { label: '冰雪宫殿', type: 'palace' },
+  { label: '极速冰滑梯', type: 'slide' },
+  { label: '梦幻雪圈', type: 'dome' },
+  { label: '北极光塔', type: 'tower' },
+  { label: '餐饮广场', type: 'palace' },
+  { label: '停车场A', type: 'flat' },
+  { label: '游客中心', type: 'palace' },
+];
+
+function findBuildingForCamera(camIdx) {
+  if (camIdx < cameraTargetBuildings.length) {
+    const target = cameraTargetBuildings[camIdx];
+    return buildingDefs.find(b => b.label === target.label);
+  }
+  return null;
+}
+
+// ── 评论系统重写 (新评论在顶部, 旧评论下移) ──
+let lastReviewTime = Date.now();
+let reviewGenerationTimer = 0;
+
+function updateReviews() {
+  const feed = document.getElementById('review-feed');
+  if (!feed) return;
+
+  // 只显示最新8条
+  const displayReviews = reviewQueue.slice(0, 8);
+  feed.innerHTML = displayReviews.map((r, i) => {
+    const timeAgo = i === 0 ? '刚刚' : (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
+    const sentClass = r.sentiment === 'pos' ? 'pos' : 'neg';
+    const sentText = r.sentiment === 'pos' ? '😊' : '😞';
+    return `<div class="review-item" style="animation-delay:${i*0.05}s">
+      <span class="rev-user">${r.user}</span>
+      <span class="rev-text">${r.text}</span>
+      <span class="rev-sentiment ${sentClass}">${sentText}</span>
+      <span class="rev-time">${timeAgo}</span>
+    </div>`;
+  }).join('');
+
+  // 更新情感统计
+  const posCount = reviewQueue.filter(r => r.sentiment === 'pos').length;
+  const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
+  const total = posCount + negCount || 1;
+
+  updateSentimentDisplay(posCount, negCount, total);
+}
+
+// 生成新评论 (插入到队列最前面)
+function generateNewReview() {
+  const tmpl = newReviewTemplates[Math.floor(Math.random() * newReviewTemplates.length)];
+  const now = new Date();
+  const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  // 微调文本
+  const variations = ['', '!', '~', '！', '～'];
+  const text = tmpl.text + variations[Math.floor(Math.random() * variations.length)];
+
+  const newReview = {
+    user: tmpl.user + Math.floor(Math.random() * 100),
+    text: text,
+    sentiment: tmpl.sentiment,
+    category: tmpl.category,
+    time: timeStr,
+  };
+
+  // 插入到最前面
+  reviewQueue.unshift(newReview);
+  if (reviewQueue.length > 50) reviewQueue.length = 50;
+
+  // 更新情感历史
+  const posRate = reviewQueue.filter(r => r.sentiment === 'pos').length / reviewQueue.length;
+  sentimentHistory.push({ time: sentimentHistory.length, posRate });
+  if (sentimentHistory.length > 30) sentimentHistory.shift();
+
+  lastReviewTime = Date.now();
+  updateReviews();
+  updateSemanticAnalysis();
+}
+
+function updateSentimentDisplay(posCount, negCount, total) {
+  const posPct = Math.round(posCount / total * 100);
+  const negPct = 100 - posPct;
+
+  const posBar = document.getElementById('sentiment-pos-bar');
+  const negBar = document.getElementById('sentiment-neg-bar');
+  if (posBar) { posBar.style.width = posPct + '%'; posBar.textContent = posPct + '% (' + posCount + '条)'; }
+  if (negBar) { negBar.style.width = negPct + '%'; negBar.textContent = negPct + '% (' + negCount + '条)'; }
+}
+
+// ── 队列/密度一致性修复 (仅3D气泡+左侧列表) ──
+function getQueueFromDensity(building) {
+  const capacity = building.width * building.depth * 12;
+  const ratio = building.density / Math.max(1, capacity);
+  return Math.round(ratio * 45);
+}
+
+function updateBubblesWithQueue() {
+  bubbles.forEach(bub => {
+    const qMins = getQueueFromDensity(bub.building);
+    const ratio = bub.building.density / Math.max(1, bub.building.width * bub.building.depth * 12);
+    let qColor = '#22c55e';
+    let qLabel = '排队短';
+    if (ratio > 0.85) { qColor = '#ef4444'; qLabel = '排队久'; }
+    else if (ratio > 0.6) { qColor = '#f59e0b'; qLabel = '排队中'; }
+
+    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人</span><br><span class="bubble-queue" style="color:${qColor}">🕐${qLabel} ~${qMins}分钟</span>`;
+  });
+}
+
+// ── 更新左侧客流列表 ──
+function updateVisitorList() {
+  const list = document.getElementById('visitor-list');
+  if (!list) return;
+
+  const sorted = [...buildingDefs].sort((a, b) => b.density - a.density);
+  list.innerHTML = sorted.slice(0, 8).map(b => {
+    const capacity = b.width * b.depth * 12;
+    const ratio = b.density / Math.max(1, capacity);
+    const qMins = Math.round(ratio * 45);
+    let statusClass = 'online';
+    let statusText = '舒适';
+    if (ratio > 0.85) { statusClass = 'offline'; statusText = '饱和'; }
+    else if (ratio > 0.6) { statusClass = 'warn'; statusText = '较忙'; }
+
+    return `<div class="alert-item">
+      <span style="font-weight:600;">${b.label}</span>
+      <span class="alert-level ${statusClass}">${statusText}</span>
+      <span style="font-size:10px;color:var(--text-muted);float:right;">${Math.round(b.density)}人 | 🕐${qMins}分</span>
+    </div>`;
+  }).join('');
+}
+
+// ── 动态巡检增强 ──
+function renderInspectionEnhanced() {
+  const list = document.getElementById('inspect-list');
+  if (!list) return;
+  const tasks = [
+    { name: '冰晶城堡安全巡查', status: 'done', time: '09:15' },
+    { name: '极速冰滑梯设备检查', status: 'doing', time: '10:30', eta: '11:00' },
+    { name: '餐饮广场卫生检查', status: 'doing', time: '10:45', eta: '11:20' },
+    { name: '北极光塔照明巡检', status: 'todo', time: '11:30' },
+    { name: '梦幻雪圈围栏检查', status: 'todo', time: '13:00' },
+    { name: '停车场消防设施巡检', status: 'todo', time: '14:00' },
+  ];
+  const statusMap = { done: '✅', doing: '🔄', todo: '⏳' };
+  const progress = tasks.filter(t => t.status === 'done').length;
+  const total = tasks.length;
+  list.innerHTML = `
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;">
+        <span>巡检进度 ${progress}/${total}</span><span>${Math.round(progress/total*100)}%</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${progress/total*100}%;background:linear-gradient(90deg,var(--accent-deep),var(--accent-ice));border-radius:2px;transition:width 1s;"></div>
+      </div>
+    </div>
+    ${tasks.map(t => `
+      <div class="alert-item">
+        <span>${statusMap[t.status]}</span>
+        <span style="font-weight:500;">${t.name}</span>
+        <span style="font-size:9px;color:var(--text-muted);float:right;">${t.time}${t.eta?' →'+t.eta:''}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ── 初始化新面板 ──
+// ── 游客画像数据 ──
+const visitorProfile = {
+  sources: [
+    { name: '黑龙江', pct: 28 }, { name: '吉林', pct: 22 }, { name: '辽宁', pct: 15 },
+    { name: '北京', pct: 12 }, { name: '广东', pct: 8 }, { name: '上海', pct: 6 },
+    { name: '江苏', pct: 5 }, { name: '其他', pct: 4 }
+  ],
+  ages: [
+    { name: '18-25', pct: 22 }, { name: '26-35', pct: 35 }, { name: '36-45', pct: 24 },
+    { name: '46-55', pct: 12 }, { name: '56+', pct: 7 }
+  ],
+  types: [
+    { name: '自由行', pct: 38 }, { name: '跟团游', pct: 28 },
+    { name: '亲子游', pct: 22 }, { name: '商务出行', pct: 12 }
+  ]
+};
+
+function updateVisitorProfile() {
+  const sourceDom = document.getElementById('profile-source-chart');
+  const ageDom = document.getElementById('profile-age-chart');
+  const typeDom = document.getElementById('profile-type-chart');
+  if (!sourceDom || !ageDom || !typeDom) return;
+
+  // 客源地饼图
+  let sc = echartsInstances['profile-source-chart'];
+  if (!sc) sc = getOrCreateChart('profile-source-chart');
+  if (sc) {
+    const srcData = visitorProfile.sources.map(s => ({
+      ...s, pct: Math.max(1, s.pct + Math.round((Math.random() - 0.5) * 4))
+    }));
+    const total = srcData.reduce((a, s) => a + s.pct, 0);
+    sc.setOption({
+      tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
+      series: [{
+        type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'],
+        itemStyle: { borderRadius: 4, borderColor: 'rgba(8,20,40,0.8)', borderWidth: 2 },
+        label: { color: '#94a3b8', fontSize: 9, formatter: '{b}\n{d}%' },
+        data: srcData.map(s => ({ name: s.name, value: Math.round(s.pct / total * 100) }))
+      }]
+    }, true);
+  }
+
+  // 年龄结构柱状图
+  let ac = echartsInstances['profile-age-chart'];
+  if (!ac) ac = getOrCreateChart('profile-age-chart');
+  if (ac) {
+    ac.setOption({
+      tooltip: { trigger: 'axis' },
+      grid: { left: 8, right: 16, top: 8, bottom: 20 },
+      xAxis: { type: 'category', data: visitorProfile.ages.map(a => a.name), axisLabel: { color: '#94a3b8', fontSize: 9 } },
+      yAxis: { show: false },
+      series: [{
+        type: 'bar', data: visitorProfile.ages.map(a => a.pct),
+        itemStyle: { borderRadius: [4, 4, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#38bdf8' }, { offset: 1, color: '#0e7490' }
+          ])
+        },
+        label: { show: true, position: 'top', color: '#94a3b8', fontSize: 9, formatter: '{c}%' }
+      }]
+    }, true);
+  }
+
+  // 出行类型饼图
+  let tc = echartsInstances['profile-type-chart'];
+  if (!tc) tc = getOrCreateChart('profile-type-chart');
+  if (tc) {
+    tc.setOption({
+      tooltip: { trigger: 'item', formatter: '{b}: {c}%' },
+      series: [{
+        type: 'pie', radius: ['45%', '75%'], center: ['50%', '50%'],
+        itemStyle: { borderRadius: 3, borderColor: 'rgba(8,20,40,0.8)', borderWidth: 2 },
+        label: { color: '#94a3b8', fontSize: 9, formatter: '{b} {d}%' },
+        data: visitorProfile.types.map(t => ({ name: t.name, value: t.pct })),
+        color: ['#38bdf8', '#34d399', '#f59e0b', '#a78bfa']
+      }]
+    }, true);
+  }
+}
+
+// ── 旅行社入园数据 ──
+const agencyData = [
+  { name: '冰雪假期旅行社', teams: 12, visitors: 386, guide: '王雪梅' },
+  { name: '龙江国旅', teams: 9, visitors: 275, guide: '李冬' },
+  { name: '北国风光旅行社', teams: 8, visitors: 248, guide: '赵冰' },
+  { name: '携程冰雪专线', teams: 7, visitors: 210, guide: '陈霜' },
+  { name: '途牛旅游', teams: 6, visitors: 182, guide: '刘寒' },
+  { name: '飞猪旗舰店', teams: 5, visitors: 156, guide: '张雪' },
+];
+
+function updateAgencyList() {
+  const container = document.getElementById('agency-list');
+  if (!container) return;
+  const data = agencyData.map(a => ({
+    ...a,
+    visitors: a.visitors + Math.floor((Math.random() - 0.5) * 20),
+    teams: Math.max(1, a.teams + Math.floor((Math.random() - 0.5) * 2))
+  }));
+  container.innerHTML = data.map((a, i) => `
+    <div class="agency-row">
+      <span style="color:var(--text-muted);width:16px;">${i + 1}</span>
+      <span class="agency-name" style="flex:1;">${a.name}</span>
+      <span class="agency-info">${a.teams}团</span>
+      <span class="agency-count">${a.visitors}人</span>
+      <span class="agency-info" style="width:48px;text-align:right;">👤${a.guide}</span>
+    </div>
+  `).join('');
+}
+
+function initNewPanels() {
+  // AI预测图表
+  setTimeout(() => {
+    const predictDom = document.getElementById('predict-chart');
+    if (predictDom) {
+      getOrCreateChart('predict-chart');
+      updateAIPrediction();
+    }
+  }, 500);
+
+  // 服务短板图表
+  setTimeout(() => {
+    const serviceDom = document.getElementById('service-chart');
+    if (serviceDom) {
+      getOrCreateChart('service-chart');
+      updateServiceGaps();
+    }
+  }, 600);
+
+  // 情感趋势图
+  setTimeout(() => {
+    const sentDom = document.getElementById('sentiment-chart');
+    if (sentDom) {
+      getOrCreateChart('sentiment-chart');
+      updateSemanticAnalysis();
+    }
+  }, 700);
+
+  // 游客画像
+  setTimeout(() => { updateVisitorProfile(); }, 900);
+  // 旅行社数据
+  setTimeout(() => { updateAgencyList(); }, 1000);
+  // 更新集成面板
+  setTimeout(updateIntegrationPanel, 800);
+  setTimeout(() => updateRevenueDetail(), 300);
+}
+
+// ── 定期更新循环 ──
+let globalTick = 0;
+function periodicUpdate() {
+  globalTick++;
+  // 每5秒生成新评论
+  if (globalTick % 5 === 0) {
+    generateNewReview();
+  }
+  // 每10秒刷新预测和服务短板
+  if (globalTick % 10 === 0) {
+    updateServiceGaps();
+    updateIntegrationPanel();
+    updateVisitorProfile();
+    updateAgencyList();
+  }
+  // 每3秒更新营收
+  if (globalTick % 3 === 0) {
+    updateRevenueDetail();
+  }
+  // 每2秒更新气泡和列表
+  if (globalTick % 2 === 0) {
+    updateBubblesWithQueue();
+    updateVisitorList();
+    const total = buildingDefs.reduce((s, b) => s + b.density, 0);
+    document.getElementById('current-visitors').textContent = total.toLocaleString();
+  }
+}
+
+// ── 建筑点击 → 钻取详情 ──
+window.addEventListener('click', (e) => {
+  if (e.target.closest('#detail-modal') || e.target.closest('#solution-modal')) return;
+  const mx = (e.clientX / window.innerWidth) * 2 - 1;
+  const my = -(e.clientY / window.innerHeight) * 2 + 1;
+  const rc = new THREE.Raycaster();
+  rc.setFromCamera(new THREE.Vector2(mx, my), camera);
+  const hits = rc.intersectObjects(buildingGroups, true);
+  if (hits.length > 0) {
+    let o = hits[0].object;
+    while (o && !o.userData.building) o = o.parent;
+    if (o && o.userData.building) openDetail(o.userData.building, o);
+  }
+});
+
 // ── Start ──
 initCameras();
-renderInspection();
+initNewPanels();
+renderInspectionEnhanced();
 updateReviews();
+updateSemanticAnalysis();
+updateVisitorList();
 renderUI();
 drawSparkline();
 animate();
