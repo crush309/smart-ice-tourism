@@ -529,12 +529,61 @@ body {
 
 /* 动画人物 */
 .anim-person { position:absolute; font-size:16px; pointer-events:none; z-index:5; transition:all 0.8s ease-out; }
+
+/* Layout: inspection belongs to the sidebar; small screens retain every tool. */
+:root { --text-muted:#89a6bf; }
+#inspection-panel { position:relative; bottom:auto; left:auto; width:auto; margin:12px 0; padding:12px; box-shadow:none; }
+#inspection-panel.collapsed { width:auto; min-width:0; padding:8px 10px; }
+#inspection-panel.collapsed .panel-title::after { content:none; }
+#inspect-list { max-height:300px; overflow:auto; }
+#monitor-card { width:min(1100px,96vw); max-width:1100px; max-height:96dvh; overflow:auto; }
+#monitor-canvas { width:100%; height:auto; aspect-ratio:16/9; }
+#monitor-canvas canvas { width:100%; height:100%; object-fit:contain; }
+#monitor-title { padding-right:48px; }
+#detail-card, #solution-card { max-width:94vw; max-height:90dvh; overflow:auto; }
+#data-source { position:fixed; top:57px; left:50%; transform:translateX(-50%); z-index:11; font-size:11px; color:#a9cde4; background:#08192a; padding:2px 10px; border-radius:0 0 8px 8px; }
+#drawer-nav { display:none; }
+button { font:inherit; }
+button.review-item { display:block; width:100%; text-align:left; color:var(--text-primary); border:0; cursor:pointer; }
+.review-item .rev-sentiment.neutral { color:#fbbf24; }
+:focus-visible { outline:2px solid #7dd3fc; outline-offset:3px; }
+#info-dialog { margin:auto; width:min(520px,92vw); max-height:85dvh; overflow:auto; border:1px solid #3a7898; border-radius:14px; padding:22px; background:#0b1e32; color:#d8eafa; }
+#info-dialog::backdrop { background:rgba(2,9,20,.76); }
+#info-content { white-space:pre-wrap; line-height:1.8; user-select:text; margin:16px 0; }
+#info-dialog button,#drawer-nav button { color:#d8f0ff; background:#173d59; border:1px solid #39769b; border-radius:7px; padding:8px 14px; cursor:pointer; }
+#info-dialog form { display:flex; justify-content:flex-end; gap:10px; }
+.panel-tabs { flex-wrap:wrap; gap:4px; }
+@media(max-width:900px) {
+  #drawer-nav { display:flex; position:fixed; top:80px; left:12px; right:12px; gap:8px; z-index:25; }
+  #drawer-nav button { flex:1; }
+  #left-panel,#right-panel { display:none; top:125px; bottom:56px; height:auto; width:min(360px,calc(100vw - 24px)); left:12px; right:auto; z-index:24; background:rgba(8,20,40,.98); }
+  #left-panel.drawer-open,#right-panel.drawer-open { display:block; }
+  #bottom-bar { justify-content:flex-start; overflow-x:auto; white-space:nowrap; gap:20px; padding:0 12px; }
+  #top-bar h1 { font-size:clamp(12px,3.4vw,16px); letter-spacing:0; }
+  #heatmap-bar { display:none; }
+  #data-source { white-space:nowrap; max-width:95vw; overflow:hidden; }
+  #monitor-title { font-size:12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; }
+}
 </style>
 <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 </head>
 <body>
 
 <div id="top-bar"><h1>多业态融合智慧文旅管控系统 - 冰雪大世界</h1></div>
+<div id="data-source">演示模式 · 模拟运营数据</div>
+<nav id="drawer-nav" aria-label="小屏面板导航">
+<button type="button" onclick="toggleDrawer('left')" aria-controls="left-panel" aria-expanded="false">客流与巡检</button>
+<button type="button" onclick="toggleDrawer('right')" aria-controls="right-panel" aria-expanded="false">业务与监控</button>
+<button type="button" onclick="toggleDrawer(null)">查看场景</button>
+</nav>
+<dialog id="info-dialog" aria-labelledby="info-title">
+<h2 id="info-title" style="font-size:18px;margin:0;"></h2>
+<div id="info-content"></div>
+<form method="dialog"><button id="info-action" type="button" hidden></button><button value="close">关闭</button></form>
+</dialog>
 
 <div id="left-panel" class="panel">
   <div class="panel-title">实时客流数据</div>
@@ -550,9 +599,9 @@ body {
   </div>
   <canvas id="sparkline-canvas" width="456" height="160"></canvas>
   <div class="stat-tile" style="margin-top:10px;cursor:pointer;" onclick="clickStatTile('entryRate')">
-    <div class="stat-label">实时入园速率</div>
+    <div class="stat-label">入园速率 · 最近60秒</div>
     <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
-      <span style="font-size:24px;font-weight:700;color:var(--accent-glow);" id="entry-rate">186</span>
+      <span style="font-size:24px;font-weight:700;color:var(--accent-glow);" id="entry-rate">0</span>
       <span style="font-size:12px;color:var(--text-secondary);">人/分钟</span>
     </div>
   </div>
@@ -577,7 +626,7 @@ body {
 
       <!-- AI客流预测面板 -->
     <div id="predict-panel" style="margin-top:10px;">
-      <div class="panel-title">🤖 AI客流预测 (置信度92%)</div>
+      <div class="panel-title">🤖 客流预测 · 规则模拟</div>
       <div class="predict-chart" id="predict-chart"></div>
       <div class="predict-list" id="predict-list"></div>
     </div>
@@ -623,7 +672,7 @@ body {
   <!-- Tab: 监控画面 -->
   <div id="tab-camera" style="display:none;">
     <div class="panel-title">重点点位监控</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">📹 8路监控实时画面</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">📹 8处客流动画 · 模拟画面</div>
     <div class="camera-grid" id="camera-grid"></div>
   </div>
 
@@ -712,10 +761,10 @@ body {
 <div id="heatmap-bar"></div>
 
 <!-- 巡检工作面板 -->
-<div id="inspection-panel" class="panel">
-  <div class="panel-title" onclick="toggleInspection()">
+<div id="inspection-panel" class="panel collapsed">
+  <div class="panel-title" role="button" tabindex="0" aria-expanded="false" aria-controls="inspect-list" onclick="toggleInspection()">
     <span>🔍 日常巡检工作</span>
-    <span class="toggle-btn">▼</span>
+    <span class="toggle-btn">▶</span>
   </div>
   <div id="inspect-list"></div>
 </div>
@@ -1394,7 +1443,9 @@ const buildingGroups = [];
   scene.add(bld);
   def._group = bld;
   buildingGroups.push(bld);
-  buildings.push({ group: bld, ...def });
+  def.group = bld;
+  def.flowIn = 0; def.flowOut = 0;
+  buildings.push(def);
 });
 
 // ── Data Bubbles (CSS2D) ──
@@ -1476,7 +1527,7 @@ scene.add(snowParticles);
 const dataState = {
   currentVisitors: 8523,
   totalToday: 32180,
-  entryRate: 186,
+  entryRate: 0,
   visitorHistory: [],
   weatherTemp: -15,
   weatherType: '小雪',
@@ -1500,10 +1551,11 @@ function renderAlerts() {
     const cls = a.level === 'danger' ? 'danger' : '';
     const lvlCls = a.level === 'danger' ? 'danger' : 'warn';
     const lvlLabel = a.level === 'danger' ? '🔴 严重' : '🟡 提醒';
-    const time = new Date(Date.now() - Math.random() * 600000).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-    return `<div class="alert-item ${cls}" onclick="clickAlertItem('${a.msg.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="点击关闭此预警">
+    a.createdAt ??= Date.now();
+    const time = new Date(a.createdAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+    return `<div class="alert-item ${cls}" onclick="clickAlertItem('${a.msg.replace(/'/g, "\\'")}')" style="cursor:pointer;" title="查看并处理预警">
       <span style="flex:1;padding-right:8px;">${a.msg}</span>
-      <span class="alert-level ${lvlCls}">${lvlLabel}</span>
+      <span class="alert-level ${lvlCls}">${a.acknowledged ? '已确认' : lvlLabel}</span>
       <span style="font-size:10px;color:var(--text-muted);margin-left:8px;">${time}</span>
     </div>`;
   }).join('');
@@ -1518,12 +1570,28 @@ function toggleAlert() {
 window.toggleAlert = toggleAlert;
 
 // ── UI元素交互处理函数 ──
+function showInfo(title, content, action) {
+  const dialog = document.getElementById('info-dialog');
+  document.getElementById('info-title').textContent = title;
+  document.getElementById('info-content').textContent = content;
+  const button = document.getElementById('info-action');
+  button.hidden = !action;
+  button.textContent = action?.label || '';
+  button.onclick = action ? () => { action.run(); dialog.close(); } : null;
+  if (!dialog.open) dialog.showModal();
+}
 function clickStatTile(type) {
-  if (type === 'visitors') { controls.target.set(0, 1, 0); camera.position.set(0, 40, 5); controls.update(); }
-  else if (type === 'revenue') { switchTab('revenue', document.querySelector('.panel-tab:nth-child(4)')); }
-  else if (type === 'satisfaction') { switchTab('review', document.querySelector('.panel-tab:nth-child(3)')); }
-  else if (type === 'totalToday') { switchTab('overview', document.querySelector('.panel-tab:nth-child(1)')); }
-  else if (type === 'entryRate') { controls.target.set(0, -7, 0); camera.position.set(8, 30, 10); controls.update(); }
+  if (type === 'revenue' || type === 'satisfaction') {
+    const index = type === 'revenue' ? 3 : 2;
+    switchTab(type === 'revenue' ? 'revenue' : 'review', document.querySelectorAll('.panel-tab')[index]);
+    if (window.innerWidth <= 900) toggleDrawer('right', true);
+    return;
+  }
+  const history = flowSamples.slice(-12).map(s => new Date(s.time).toLocaleTimeString('zh-CN') + '  入园 ' + s.entered + ' / 离园 ' + s.exited).join('\n');
+  showInfo('客流明细 · 模拟数据',
+    '当前在园：' + Math.round(dataState.currentVisitors) + ' 人\n今日累计入园：' + dataState.totalToday +
+    ' 人\n最近60秒入园速率：' + dataState.entryRate + ' 人/分钟\n\n' +
+    (history || '正在积累最近60秒的进出记录。'));
 }
 window.clickStatTile = clickStatTile;
 
@@ -1535,32 +1603,34 @@ window.clickZoneItem = clickZoneItem;
 
 function clickFacilityRow(name) {
   const f = facilityData.find(f => f.name === name);
-  if (f) { f.on = !f.on; renderFacilityList(); }
+  if (f) showInfo('设备详情 · ' + f.name, '状态：' + (f.on ? '在线' : '离线') + '\n当前为演示设备状态。离线设备应由现场检查后确认恢复。');
 }
 window.clickFacilityRow = clickFacilityRow;
-
 function clickReviewItem(rid) {
   const r = reviewQueue.find(r => String(r.rid) === String(rid));
-  if (r) { alert('📝 ' + r.user + ' 的评论\n\n' + r.text + '\n\n情感: ' + (r.sentiment === 'pos' ? '正面😊' : '负面😞') + '\n分类: ' + (r.category || '综合')); }
+  if (r) showInfo(r.user + ' 的评论', r.text + '\n\n情感：' + ({pos:'正面',neg:'负面',neutral:'中性'}[r.sentiment] || '中性') +
+    '\n分类：' + (r.category || '综合') + '\n时间：' + new Date(r.createdAt).toLocaleString('zh-CN'));
 }
 window.clickReviewItem = clickReviewItem;
-
 function clickAgencyRow(idx) {
   const a = agencyData[idx];
-  if (a) { alert('🚩 ' + a.name + '\n\n导游: ' + a.guide + '\n团队: ' + a.teams + '个团\n游客: ' + a.visitors + '人'); }
+  if (a) showInfo(a.name, '导游：' + a.guide + '\n团队：' + a.teams + ' 个团\n游客：' + a.visitors + ' 人\n模拟团队登记数据');
 }
 window.clickAgencyRow = clickAgencyRow;
-
 function clickInspectItem(name) {
-  const tasks = inspectionTasks;
-  const t = tasks.find(t => t.name === name);
-  if (t) { t.status = t.status === 'done' ? 'pending' : 'done'; renderInspection(); }
+  const t = inspectionTasks.find(t => t.name === name);
+  if (t) showInfo('巡检任务', t.name + '\n安排时间：' + t.time + '\n当前状态：' +
+    ({done:'已完成',pending:'待执行',issue:'异常'}[t.status]), {
+    label: t.status === 'done' ? '重新打开任务（演示）' : '记录完成（演示）',
+    run: () => { t.status = t.status === 'done' ? 'pending' : 'done'; renderInspection(); }
+  });
 }
 window.clickInspectItem = clickInspectItem;
-
 function clickAlertItem(msg) {
-  const idx = alertsData.findIndex(a => a.msg === msg);
-  if (idx >= 0) { alertsData.splice(idx, 1); renderAlerts(); }
+  const a = alertsData.find(a => a.msg === msg);
+  if (a) showInfo('预警处理', a.msg + '\n状态：' + (a.acknowledged ? '已确认，待现场处理' : '待确认'), {
+    label: '确认收到（保留预警）', run: () => { a.acknowledged = true; renderAlerts(); }
+  });
 }
 window.clickAlertItem = clickAlertItem;
 
@@ -1583,6 +1653,7 @@ function initCameras() {
     const card = document.createElement('div');
     card.className = 'camera-card';
     card.style.cursor = 'pointer';
+    card.tabIndex=0; card.setAttribute('role','button');
     card.title = '点击查看' + name + '监控大屏';
     card.addEventListener('click', () => {
       openMonitorScreen(name);
@@ -1591,7 +1662,7 @@ function initCameras() {
     canvas.width = 256; canvas.height = 120;
     const label = document.createElement('div');
     label.className = 'camera-label';
-    label.innerHTML = `<span>📍 ${name}</span><span class="camera-live">LIVE</span>`;
+    label.innerHTML = `<span>📍 ${name}</span><span class="camera-live">模拟<//span>`;
     card.appendChild(canvas);
     card.appendChild(label);
     grid.appendChild(card);
@@ -1781,7 +1852,7 @@ function updateCameras() {
     ctx.fillStyle = '#4ade80'; ctx.font = 'bold 9px monospace';
     const dotAlpha = 0.5 + Math.sin(now * 0.005) * 0.5;
     ctx.globalAlpha = dotAlpha; ctx.fillText('●', 4, 11);
-    ctx.globalAlpha = 1; ctx.fillText('LIVE', 12, 11);
+    ctx.globalAlpha = 1; ctx.fillText('模拟', 12, 11);
     ctx.fillStyle = '#fff'; ctx.font = 'bold 9px "Microsoft YaHei", sans-serif';
     ctx.fillText(c.name, 48, 11);
     ctx.fillStyle = '#ccc'; ctx.font = '8px monospace';
@@ -1817,7 +1888,9 @@ function toggleInspection() {
   const panel = document.getElementById('inspection-panel');
   const btn = panel.querySelector('.toggle-btn');
   panel.classList.toggle('collapsed');
-  btn.textContent = panel.classList.contains('collapsed') ? '▶' : '▼';
+  const collapsed = panel.classList.contains('collapsed');
+  btn.textContent = collapsed ? '▶' : '▼';
+  panel.querySelector('.panel-title').setAttribute('aria-expanded', String(!collapsed));
 }
 window.toggleInspection = toggleInspection;
 function renderInspection() {
@@ -1825,7 +1898,7 @@ function renderInspection() {
   list.innerHTML = inspectionTasks.map(t => {
     const cls = t.status === 'done' ? 'done' : t.status === 'pending' ? 'pending' : 'issue';
     const label = t.status === 'done' ? '✅ 已完成' : t.status === 'pending' ? '⏳ 待执行' : '⚠️ 异常';
-    return `<div class="inspect-item" onclick="clickInspectItem('${t.name}')" style="cursor:pointer;" title="点击切换状态">
+    return `<div class="inspect-item" onclick="clickInspectItem('${t.name}')" style="cursor:pointer;" title="查看详情">
       <span class="inspect-name">${t.name}</span>
       <span class="inspect-status ${cls}">${label}</span>
     </div>`;
@@ -1835,7 +1908,7 @@ function renderInspection() {
 // ── Tab Switching ──
 function switchTab(tab, el) {
   document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  el?.classList.add('active');
   document.getElementById('tab-overview').style.display = tab === 'overview' ? 'block' : 'none';
   document.getElementById('tab-camera').style.display = tab === 'camera' ? 'block' : 'none';
   document.getElementById('tab-review').style.display = tab === 'review' ? 'block' : 'none';
@@ -1845,7 +1918,7 @@ function switchTab(tab, el) {
   // Tab切换后刷新ECharts图表
   setTimeout(() => {
     if (tab === 'review') {
-      updateReviews();
+      updateReviewTimes();
       updateSemanticAnalysis();
       ['sentiment-chart', 'service-chart'].forEach(id => {
         if (echartsInstances[id]) echartsInstances[id].resize();
@@ -1874,8 +1947,8 @@ for (let i = 29; i >= 0; i--) {
 function updateData() {
   // currentVisitors 和 entryRate 已由 tickDataTargets() 基于守恒模型更新，此处不再随机抖动
   const delta = dataState.currentVisitors - (dataState.visitorHistory[dataState.visitorHistory.length - 1] || dataState.currentVisitors);
-  dataState.totalToday += Math.max(0, Math.round(delta * 0.6 + 20 + Math.random() * 10));
-  dataState.revenue += (Math.random() * 0.8 + 0.3); // 缓慢增长
+
+
   // 满意度缓慢变化
   dataState.satisfaction = Math.max(88, Math.min(97, dataState.satisfaction + (Math.random() - 0.52) * 0.25));
   dataState.parkingUsed += Math.floor((Math.random() - 0.48) * 5);
@@ -1895,16 +1968,7 @@ function updateData() {
 
   // 建筑密度不再独立随机抖动，由 tickDataTargets() + lerpData() 统一管理
 
-  // Update bubbles (稳定显示，不闪烁)
-  bubbles.forEach(bub => {
-    const ccap = bub.building.width * bub.building.depth * 12;
-    const cr = bub.building.density / Math.max(1, ccap);
-    const cqm = Math.round(cr * 45);
-    let cqc = 'var(--text-secondary)';
-    if (cr > 0.85) cqc = '#ef4444';
-    else if (cr > 0.6) cqc = '#f59e0b';
-    bub.div.innerHTML = `${bub.building.label}<br><span class="val">${Math.round(bub.building.density)}</span><span class="unit">人 <span style="font-size:9px;color:${cqc}">🕐${cqm}min</span></span>`;
-  });
+  updateBubblesWithQueue();
 }
 
 function renderUI() {
@@ -2171,7 +2235,6 @@ function animate() {
     renderUI();
     drawSparkline();
     updateCameras();
-    updateReviews();
   }
 
   zoneUpdateTimer += dt;
@@ -2366,6 +2429,7 @@ function lerpData(dt) {
     b.density = Math.round(s.density.current);
     b._queue = Math.round(s.queue.current);
   });
+  dataState.currentVisitors = buildingDefs.reduce((n,b) => n+b.density,0);
 }
 
 // ── 建筑邻接关系（基于实际空间位置）──
@@ -2389,84 +2453,57 @@ const buildingAdjacency = {
 };
 
 // 每5秒：基于邻接关系的人员流动 + 园区整体进出
+const flowSamples = [];
+const flowStartedAt = Date.now();
 let dataTicker = 0;
 let _lastTotalVisitors = 0;
+let externalBuildingsAt = 0;
+function movePeople(from, to, requested) {
+  const source = from ? smoothState[from.label].density : null;
+  const dest = to ? smoothState[to.label].density : null;
+  const room = to ? Math.max(0, to.width * to.depth * 12 - dest.target) : Infinity;
+  const count = Math.max(0, Math.floor(Math.min(requested, source ? source.target : Infinity, room)));
+  if (source) { source.target -= count; from.flowOut += count; }
+  if (dest) { dest.target += count; to.flowIn += count; }
+  return count;
+}
 function tickDataTargets() {
   dataTicker++;
-  const totalBefore = buildingDefs.reduce((s, b) => s + b.density, 0);
-
-  // 1. 邻近建筑人员流动（每次选3-5对建筑）
-  const flowPairs = [];
-  const allLabels = buildingDefs.map(b => b.label);
-  for (let i = 0; i < 5; i++) {
-    const src = allLabels[Math.floor(Math.random() * allLabels.length)];
-    const neighbors = buildingAdjacency[src] || [];
-    if (neighbors.length > 0) {
-      const dst = neighbors[Math.floor(Math.random() * neighbors.length)];
-      flowPairs.push([src, dst]);
-    }
+  // External snapshots own the building targets while fresh; no synthetic gate counts are inferred.
+  if (Date.now() - externalBuildingsAt < 15000) return;
+  for (let i = 0; i < 4; i++) {
+    const from = buildingDefs[Math.floor(Math.random() * buildingDefs.length)];
+    const candidates = buildingAdjacency[from.label] || [];
+    const to = buildingDefs.find(b => b.label === candidates[Math.floor(Math.random() * candidates.length)]);
+    if (to) movePeople(from, to, 2 + Math.floor(Math.random() * 5));
   }
-  flowPairs.forEach(([src, dst]) => {
-    const sA = smoothState[src], sB = smoothState[dst];
-    if (!sA || !sB) return;
-    const transfer = Math.round(Math.random() * 15 + 3); // 3-18人转移
-    if (sA.density.target > transfer) {
-      sA.density.target -= transfer;
-      sB.density.target += transfer;
-    }
-  });
-
-  // 2. 园区整体进出（净流入/流出）
-  const netFlow = Math.round((Math.random() - 0.48) * 30); // -14~+15 偏正
-  if (netFlow > 0) {
-    // 流入：优先分配到密度低的建筑
-    const sorted = [...buildingDefs].sort((a, b) => {
-      const ca = a.width * a.depth * 12, cb = b.width * b.depth * 12;
-      return (smoothState[a.label].density.target / ca) - (smoothState[b.label].density.target / cb);
-    });
-    let remaining = netFlow;
-    for (let i = 0; i < Math.min(3, sorted.length) && remaining > 0; i++) {
-      const add = Math.min(remaining, Math.round(Math.random() * 8 + 2));
-      smoothState[sorted[i].label].density.target += add;
-      remaining -= add;
-    }
-  } else if (netFlow < 0) {
-    // 流出：从密度高的建筑减少
-    const sorted = [...buildingDefs].sort((a, b) => {
-      const ca = a.width * a.depth * 12, cb = b.width * b.depth * 12;
-      return (smoothState[b.label].density.target / cb) - (smoothState[a.label].density.target / ca);
-    });
-    let remaining = -netFlow;
-    for (let i = 0; i < Math.min(3, sorted.length) && remaining > 0; i++) {
-      const sub = Math.min(remaining, Math.round(Math.random() * 8 + 2));
-      const s = smoothState[sorted[i].label];
-      s.density.target = Math.max(10, s.density.target - sub);
-      remaining -= sub;
-    }
+  let entered = 0, exited = 0;
+  const incoming = 14 + Math.floor(Math.random() * 3);
+  const outgoing = 12 + Math.floor(Math.random() * 3);
+  const sorted = [...buildingDefs].sort((a,b) =>
+    smoothState[a.label].density.target / (a.width*a.depth) - smoothState[b.label].density.target / (b.width*b.depth));
+  let remainder = incoming;
+  for (const b of sorted) {
+    const n = movePeople(null, b, remainder);
+    entered += n; remainder -= n;
+    if (!remainder) break;
   }
-
-  // 3. 确保每栋建筑在合理范围内
+  remainder = outgoing;
+  for (const b of sorted.reverse()) {
+    const n = movePeople(b, null, remainder);
+    exited += n; remainder -= n;
+    if (!remainder) break;
+  }
+  flowSamples.push({time:Date.now(), entered, exited});
+  while (flowSamples.length && flowSamples[0].time <= Date.now() - 60000) flowSamples.shift();
+  const seconds = Math.max(5, Math.min(60, (Date.now() - flowStartedAt) / 1000));
+  dataState.entryRate = Math.round(flowSamples.reduce((n,s) => n+s.entered,0) * 60 / seconds);
+  dataState.exitRate = Math.round(flowSamples.reduce((n,s) => n+s.exited,0) * 60 / seconds);
+  dataState.totalToday += entered;
   buildingDefs.forEach(b => {
-    const s = smoothState[b.label];
-    const capacity = b.width * b.depth * 12;
-    s.density.target = Math.max(capacity * 0.08, Math.min(capacity * 0.92, s.density.target));
-    const ratio = s.density.target / capacity;
-    s.queue.target = Math.round(ratio * 45);
+    smoothState[b.label].queue.target = Math.round(smoothState[b.label].density.target / (b.width*b.depth*12) * 45);
   });
-
-  // 4. 记录总量变化
-  const totalAfter = buildingDefs.reduce((s, b) => s + smoothState[b.label].density.target, 0);
-  _lastTotalVisitors = totalAfter;
-
-  // 更新 dataState（与建筑密度保持一致）
-  dataState.currentVisitors = totalAfter;
-  const rawRate = Math.round((totalAfter - totalBefore) / 5 * 60);
-  // 指数移动平均平滑，避免大幅波动
-  if (!dataState._entryRateEMA) dataState._entryRateEMA = rawRate;
-  dataState._entryRateEMA = dataState._entryRateEMA * 0.75 + rawRate * 0.25;
-  dataState.entryRate = Math.round(dataState._entryRateEMA);
-  dataState.entryRate = Math.max(10, Math.min(250, dataState.entryRate));
-  dataState.totalToday += Math.max(0, Math.round((totalAfter - totalBefore) * 0.6 + 25));
+  _lastTotalVisitors = buildingDefs.reduce((n,b) => n+smoothState[b.label].density.target,0);
 }
 
 // ── WebSocket 实时数据 ──
@@ -2474,7 +2511,7 @@ let wsConnected = false;
 let useWebSocket = true;
 function connectWebSocket() {
   try {
-    const ws = new WebSocket('ws://localhost:8765');
+    const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + (location.hostname || 'localhost') + ':8765');
     ws.onopen = () => {
       wsConnected = true;
       console.log('%c🔗 WebSocket 已连接', 'color:#22c55e;');
@@ -2482,29 +2519,27 @@ function connectWebSocket() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.buildings) {
+        if (Array.isArray(data.buildings)) {
           data.buildings.forEach(bd => {
             const def = buildingDefs.find(d => d.label === bd.label);
             if (def && smoothState[bd.label]) {
-              smoothState[bd.label].density.target = bd.density || def.density;
-              smoothState[bd.label].queue.target = bd.queue || Math.round((bd.density || def.density) / (def.width * def.depth * 12) * 45);
+              if (!Number.isFinite(bd.density) || bd.density < 0) return;
+              const change = bd.density - smoothState[bd.label].density.target;
+              def.flowIn += Math.max(0, change);
+              def.flowOut += Math.max(0, -change);
+              smoothState[bd.label].density.target = bd.density;
+              smoothState[bd.label].queue.target = Math.round(bd.density / (def.width * def.depth * 12) * 45);
+              externalBuildingsAt = Date.now();
+              dataState.entryRate = 0; dataState.exitRate = 0;
+              document.getElementById('data-source').textContent = '外部快照 · 进出仅为净变化示意';
             }
           });
         }
-        if (data.totalVisitors) document.getElementById('current-visitors').textContent = data.totalVisitors.toLocaleString();
-        if (data.revenue) {
-          document.getElementById('rev-total').textContent = '¥' + (data.revenue.total || 0).toLocaleString();
-          document.getElementById('rev-ticket').textContent = '¥' + (data.revenue.ticket || 0).toLocaleString();
-          document.getElementById('rev-hotel').textContent = '¥' + (data.revenue.hotel || 0).toLocaleString();
-          document.getElementById('rev-dining').textContent = '¥' + (data.revenue.dining || 0).toLocaleString();
-          document.getElementById('rev-retail').textContent = '¥' + (data.revenue.retail || 0).toLocaleString();
-          document.getElementById('rev-parking').textContent = '¥' + (data.revenue.parking || 0).toLocaleString();
+
+        if (Array.isArray(data.reviews)) {
+          [...data.reviews].reverse().forEach(r => ingestReview(r));
         }
-        if (data.reviews) {
-          data.reviews.forEach(r => { reviewQueue.unshift(r); });
-          if (reviewQueue.length > 50) reviewQueue.length = 50;
-          updateReviews();
-        }
+
       } catch(e) {}
     };
     ws.onclose = () => { wsConnected = false; if (useWebSocket) { setTimeout(connectWebSocket, 10000); } };
@@ -2525,6 +2560,7 @@ let detailChart = null;
 function openDetail(building, bldGroup) {
   detailBuilding = building;
   document.getElementById('detail-modal').classList.add('show');
+  updateBubblesWithQueue();
   const iconMap = { tower:'🏰', palace:'🏛️', slide:'🎢', dome:'🎪', gate:'⛩️', pagoda:'🗼', sculptures:'🎨', flat:'🅿️' };
   const typeMap = { tower:'塔楼', palace:'宫殿', slide:'冰滑梯', dome:'穹顶', gate:'大门', pagoda:'宝塔', sculptures:'冰雕花园', flat:'停车场' };
   document.getElementById('dt-icon').textContent = iconMap[building.type] || '🏢';
@@ -2554,10 +2590,10 @@ function openDetail(building, bldGroup) {
   // ── AI预测 vs 实际对比 ──
   const currentWeatherWf = weatherFactors[dataState.weatherType] || 0.95;
   const peakMod = (new Date().getHours() >= 10 && new Date().getHours() <= 20) ? 1.15 : 0.85;
-  const aiPredictedDensity = Math.round(building.density * currentWeatherWf * peakMod * (0.88 + Math.random() * 0.08));
+  const aiPredictedDensity = Math.round(building.density * currentWeatherWf * peakMod * 0.92);
   const aiPredictedRatio = Math.min(1, aiPredictedDensity / capacity);
   const aiPredictedQueue = Math.round(aiPredictedRatio * 45);
-  const aiPredictedToday = Math.round(dataState.totalToday * (building.density / Math.max(1, dataState.currentVisitors)) * (0.9 + Math.random() * 0.15));
+  const aiPredictedToday = Math.round(dataState.totalToday * (building.density / Math.max(1, dataState.currentVisitors)) * 0.97);
 
   // 当前人数对比
   document.getElementById('dt-ai-count').textContent = aiPredictedDensity + '人';
@@ -2641,749 +2677,155 @@ window.buildingDefs = buildingDefs;
 
 // ── 监控大屏（Canvas 2D 实时渲染）──
 function openMonitorScreen(cameraName) {
-  const bldName = cameraBuildingMap[cameraName] || cameraName;
-  const bld = buildingDefs.find(b => b.label === bldName);
+  const bld = buildingDefs.find(b => b.label === (cameraBuildingMap[cameraName] || cameraName));
   if (!bld) return;
-
   closeMonitor();
-
   const modal = document.getElementById('monitor-modal');
-  document.getElementById('monitor-title').textContent = '📍 ' + cameraName + ' — 实时监控大屏 (' + bld.label + ')';
+  const container = document.getElementById('monitor-canvas');
+  document.getElementById('monitor-title').textContent = cameraName + ' · 客流模拟画面（非真实视频）';
   modal.classList.add('show');
-
-  const container = document.getElementById('monitor-canvas');
-  container.innerHTML = '';
-
   const canvas = document.createElement('canvas');
-  canvas.width = 960; canvas.height = 480;
-  canvas.style.display = 'block'; canvas.style.width = '100%'; canvas.style.height = '100%';
-  container.appendChild(canvas);
+  canvas.width = 960 * Math.min(devicePixelRatio || 1,2);
+  canvas.height = 540 * Math.min(devicePixelRatio || 1,2);
+  canvas.setAttribute('aria-label',bld.label+'的模拟客流，红色进入或离开，蓝色场内行走');
+  container.replaceChildren(canvas);
   const ctx = canvas.getContext('2d');
-
-  // roundRect polyfill (matches native: does NOT call beginPath)
-  if (!ctx.roundRect) {
-    ctx.roundRect = function(x, y, w, h, r) {
-      if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
-      this.moveTo(x + r.tl, y);
-      this.lineTo(x + w - r.tr, y);
-      this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
-      this.lineTo(x + w, y + h - r.br);
-      this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
-      this.lineTo(x + r.bl, y + h);
-      this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
-      this.lineTo(x, y + r.tl);
-      this.quadraticCurveTo(x, y, x + r.tl, y);
-      this.closePath();
-    };
+  if (!ctx) { container.textContent='当前浏览器无法显示模拟画面，请尝试更新浏览器。'; return; }
+  ctx.scale(canvas.width/960,canvas.height/540);
+  const W=960,H=540, groundTop=327;
+  const scale = Math.max(1,Math.ceil(bld.width*bld.depth*12/85));
+  const people=[];
+  const state={people,bld,scale,entered:0,exited:0,previousIn:bld.flowIn,previousOut:bld.flowOut,
+    inDebt:0,outDebt:0,canvas,last:performance.now(),closed:false};
+  modal._mData=state;
+  const randomTarget=()=>({x:100+Math.random()*760,y:groundTop+14+Math.random()*120});
+  const edge=()=>{
+    const side=Math.floor(Math.random()*3);
+    return side===0 ? {x:-24,y:360+Math.random()*115} :
+      side===1 ? {x:984,y:360+Math.random()*115} : {x:100+Math.random()*760,y:568};
+  };
+  function person(phase,start,target) {
+    return {x:start.x,y:start.y,tx:target.x,ty:target.y,phase,speed:22+Math.random()*14,wait:0,step:Math.random()*6.28};
   }
-
-  const W = 960, H = 480;
-  // 建筑位置（画面中下偏左，给右侧留信息区）
-  const bldCX = W * 0.32, bldCY = H * 0.52;
-  const bw = Math.max(55, bld.width * 18), bh = Math.max(40, bld.height * 12);
-  // 透视深度
-  const depth = bw * 0.45;
-
-  const people = [];
-  let _prevDensity = bld.density;
-  let _spawnDebt = 0;  // 累积待生成的人数（避免整数截断丢失）
-  let lastTime = performance.now();
-  let _rafId;
-  let frameN = 0;
-  // 入口位置（建筑正前方偏下，模拟大门）
-  const entranceX = bldCX + depth * 0.08, entranceY = bldCY + bh * 0.15;
-  // 流动标签状态（累积变化 + 淡出动画）
-  let _flowLabel = { text: '', alpha: 0, color: '' };
-  let _prevPanelDensity = bld.density;
-  let _panelFlashFrames = 0; // 人数变化闪烁帧数
-
-  // ── 3层活动区域：为 idle 人物生成分层目标 ──
-  function getLayerTarget() {
-    const r = Math.random();
-    let tx, ty;
-    if (r < 0.4) {
-      // 第1层 (40%): 入口排队区
-      tx = entranceX + (Math.random() - 0.5) * bw * 0.25;
-      ty = entranceY + (Math.random() - 0.5) * bh * 0.12;
-    } else if (r < 0.8) {
-      // 第2层 (40%): 建筑正面游览区
-      tx = bldCX + (Math.random() - 0.5) * bw * 0.65;
-      ty = bldCY + depth * 0.35 + Math.random() * bh * 0.35;
-    } else {
-      // 第3层 (20%): 建筑侧面闲逛区
-      tx = bldCX + depth * 0.25 + (Math.random() - 0.5) * bw * 0.5;
-      ty = bldCY + (Math.random() - 0.5) * bh * 0.45;
-    }
-    return { tx, ty };
+  for(let i=0;i<Math.min(160,Math.round(bld.density/scale));i++){
+    const start=randomTarget();people.push(person('idle',start,randomTarget()));
   }
-
-  // ── 贝塞尔路径插值（二次贝塞尔 B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2）──
-  function bezierPos(t, x0, y0, cx, cy, x2, y2) {
-    const u = 1 - t;
-    return {
-      x: u * u * x0 + 2 * u * t * cx + t * t * x2,
-      y: u * u * y0 + 2 * u * t * cy + t * t * y2,
-    };
+  // Cache architecture and lighting so animation work is spent on people.
+  const background=document.createElement('canvas');background.width=W;background.height=H;
+  const g=background.getContext('2d');
+  const sky=g.createLinearGradient(0,0,0,320);sky.addColorStop(0,'#061326');sky.addColorStop(1,'#244663');
+  g.fillStyle=sky;g.fillRect(0,0,W,H);
+  g.fillStyle='#c8e4f1';
+  for(let i=0;i<65;i++){const x=(i*149+37)%W,y=(i*73+13)%205;g.globalAlpha=0.25+(i%5)*0.12;g.fillRect(x,y,1.5,1.5);}
+  g.globalAlpha=1;
+  const snow=g.createLinearGradient(0,295,0,H);snow.addColorStop(0,'#5b8298');snow.addColorStop(1,'#b8ced9');
+  g.fillStyle=snow;g.fillRect(0,300,W,H-300);
+  g.strokeStyle='rgba(224,243,255,.16)';g.lineWidth=2;
+  for(let i=0;i<8;i++){g.beginPath();g.moveTo(200+i*80,308);g.lineTo(-300+i*235,H);g.stroke();}
+  g.fillStyle='rgba(6,22,38,.25)';g.beginPath();g.ellipse(495,318,205,15,0,0,Math.PI*2);g.fill();
+  function polygon(points,color){
+    g.fillStyle=color;g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill();
+    g.strokeStyle='rgba(181,233,255,.65)';g.lineWidth=1;g.stroke();
   }
-
-  // 初始填充人员（分层散布，覆盖建筑周围3个活动区域）
-  const initialCount = Math.min(100, Math.round(bld.density * 0.38));
-  for (let i = 0; i < initialCount; i++) {
-    const target = getLayerTarget();
-    people.push({
-      x: target.tx, y: target.ty,
-      tx: target.tx, ty: target.ty,
-      phase: 'idle', speed: 30 + Math.random() * 50, idleTimer: Math.random() * 80,
-    });
-  }
-
-  // 窗户闪烁状态（持久化）
-  const windowStates = [];
-  const wCols = Math.max(3, Math.floor(bw / 8)), wRows = Math.max(3, Math.floor(bh / 10));
-  for (let r = 0; r < wRows; r++) {
-    windowStates[r] = [];
-    for (let c = 0; c < wCols; c++) {
-      windowStates[r][c] = {
-        lit: Math.random() > 0.25,
-        baseLit: Math.random() > 0.25,
-        flickerPhase: Math.random() * Math.PI * 2,
-        flickerSpeed: 0.5 + Math.random() * 2.5,
-      };
+  function block(x,y,w,h){
+    polygon([[x,y],[x+w,y],[x+w,y-h],[x,y-h]],'#458eae');
+    polygon([[x+w,y],[x+w+24,y-16],[x+w+24,y-h-16],[x+w,y-h]],'#24536f');
+    polygon([[x,y-h],[x+24,y-h-16],[x+w+24,y-h-16],[x+w,y-h]],'#b4e8ed');
+    for(let yy=y-h+18;yy<y-8;yy+=26)for(let xx=x+12;xx<x+w-8;xx+=23){
+      g.fillStyle=((Math.round(xx)+Math.round(yy))%3)?'#d2eeef':'#28627e';g.fillRect(xx,yy,7,12);
     }
   }
-
-  modal._mData = { canvas, ctx, bld, people, W, H, bldCX, bldCY, bw, bh, depth, windowStates, wCols, wRows, frameN };
-
-  // ═══════════════════════════════════
-  // 绘制静态背景（星空 + 极光）
-  // ═══════════════════════════════════
-  function drawNightSky() {
-    // 夜空渐变
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.7);
-    skyGrad.addColorStop(0, '#010914'); skyGrad.addColorStop(0.35, '#02122a'); skyGrad.addColorStop(0.7, '#0a1f3f'); skyGrad.addColorStop(1, '#132d55');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, W, H * 0.72);
-
-    // 极光带（半透明绿紫色光晕）
-    const now = performance.now() * 0.001;
-    ctx.save();
-    for (let band = 0; band < 3; band++) {
-      const baseY = H * (0.08 + band * 0.13);
-      const grd = ctx.createLinearGradient(0, baseY - 30, 0, baseY + 40);
-      const alpha = 0.04 + band * 0.02;
-      grd.addColorStop(0, 'rgba(30,200,150,0)');
-      grd.addColorStop(0.25, `rgba(40,220,160,${alpha})`);
-      grd.addColorStop(0.5, `rgba(80,180,220,${alpha + 0.03})`);
-      grd.addColorStop(0.75, `rgba(30,200,160,${alpha})`);
-      grd.addColorStop(1, 'rgba(20,100,120,0)');
-      ctx.fillStyle = grd;
-      // 波浪形极光
-      ctx.beginPath();
-      ctx.moveTo(0, baseY + 40);
-      for (let x = 0; x <= W; x += 20) {
-        const yOff = Math.sin(x * 0.008 + now * 0.3 + band * 1.7) * 18 + Math.sin(x * 0.015 + now * 0.5) * 12;
-        ctx.lineTo(x, baseY + yOff);
-      }
-      ctx.lineTo(W, baseY + 50); ctx.lineTo(0, baseY + 50); ctx.closePath();
-      ctx.fill();
-    }
+  const baseY=306;
+  if(bld.type==='slide'){
+    polygon([[290,baseY],[650,baseY],[355,160],[290,160]],'#66bad0');
+    polygon([[302,160],[317,160],[654,296],[639,296]],'#b1eff0');
+    block(275,baseY,40,147);
+  } else if(bld.type==='gate'){
+    block(330,baseY,78,160);block(550,baseY,78,160);block(400,195,156,50);
+    g.fillStyle='#112f46';g.fillRect(435,207,85,99);
+  } else if(bld.type==='dome'){
+    block(330,baseY,280,72);
+    g.fillStyle='#76c6d6';g.beginPath();g.ellipse(470,234,140,100,0,Math.PI,Math.PI*2);g.fill();
+    g.strokeStyle='#ccffff';g.stroke();
+  } else if(bld.type==='pagoda'){
+    for(let i=0;i<4;i++){const w=150-i*26,y=baseY-i*44;block(475-w/2,y,w,38);polygon([[460-w/2,y-38],[490+w/2,y-38],[475,y-64]],'#a7e7ed');}
+  } else if(bld.type==='sculptures'){
+    for(let i=0;i<5;i++){const x=310+i*80;polygon([[x,baseY],[x+54,baseY],[x+44,230-i%2*30],[x+20,199-i%2*30]],i%2?'#82d5e5':'#529bbd');}
+  } else {
+    block(325,baseY,285,bld.type==='tower'?80:120);
+    block(426,baseY,92,bld.type==='tower'?193:158);
+    polygon([[417,baseY-(bld.type==='tower'?193:158)],[535,baseY-(bld.type==='tower'?193:158)],[476,70]],'#b4ebf1');
+    if(bld.type==='palace'){block(300,baseY,44,145);block(604,baseY,44,145);}
+  }
+  g.fillStyle='#effcff';g.font='600 18px "Microsoft YaHei",sans-serif';g.textAlign='center';g.fillText(bld.label,480,48);
+  g.font='12px sans-serif';g.fillStyle='#a9d3e4';g.fillText('客流可视化 · 红色进入/离开  蓝色场内行走',480,70);
+  const flakes=Array.from({length:35},()=>({x:Math.random()*W,y:Math.random()*H,s:8+Math.random()*13}));
+  function drawPerson(p,time){
+    const red=p.phase!=='idle',size=0.85+(p.y-groundTop)/300;
+    ctx.save();ctx.translate(p.x,p.y);ctx.scale(size,size);
+    ctx.fillStyle='rgba(7,28,42,.22)';ctx.beginPath();ctx.ellipse(1,2,7,2.5,0,0,Math.PI*2);ctx.fill();
+    const walk=Math.hypot(p.tx-p.x,p.ty-p.y)>2?Math.sin(time*6+p.step)*3:0;
+    ctx.strokeStyle=red?'#962d39':'#164e73';ctx.lineWidth=2.8;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-2,-6);ctx.lineTo(-3-walk,0);ctx.moveTo(2,-6);ctx.lineTo(3+walk,0);ctx.stroke();
+    ctx.fillStyle=red?'#ed4956':'#196a9a';ctx.fillRect(-4,-17,8,12);
+    ctx.strokeStyle=red?'#ed4956':'#196a9a';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(-4,-15);ctx.lineTo(-7,-9+walk);ctx.moveTo(4,-15);ctx.lineTo(7,-9-walk);ctx.stroke();
+    ctx.fillStyle='#f4d4bb';ctx.beginPath();ctx.arc(0,-21,3.7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=red?'#b4273c':'#184460';ctx.fillRect(-4,-25,8,3);
+    if(red){ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillStyle='#96162d';ctx.fillText(p.phase==='enter'?'↓入':'↑出',0,-31);}
     ctx.restore();
-
-    // 星空（闪烁）
-    if (!modal._mData._stars) {
-      modal._mData._stars = [];
-      for (let i = 0; i < 80; i++) {
-        modal._mData._stars.push({
-          x: Math.random() * W, y: Math.random() * H * 0.55,
-          r: 0.3 + Math.random() * 0.9,
-          alpha: 0.3 + Math.random() * 0.7,
-          twinkleSpeed: 1 + Math.random() * 3,
-          twinklePhase: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-    modal._mData._stars.forEach(s => {
-      const a = s.alpha * (0.5 + 0.5 * Math.sin(now * s.twinkleSpeed + s.twinklePhase));
-      ctx.fillStyle = `rgba(220,235,255,${a.toFixed(2)})`;
-      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
-    });
-
-    // 月亮
-    const moonX = W * 0.78, moonY = H * 0.12;
-    const moonGlow = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 50);
-    moonGlow.addColorStop(0, 'rgba(220,235,255,0.25)');
-    moonGlow.addColorStop(0.5, 'rgba(180,200,240,0.08)');
-    moonGlow.addColorStop(1, 'rgba(100,140,200,0)');
-    ctx.fillStyle = moonGlow;
-    ctx.beginPath(); ctx.arc(moonX, moonY, 50, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(230,240,255,0.9)';
-    ctx.beginPath(); ctx.arc(moonX, moonY, 14, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#010914';
-    ctx.beginPath(); ctx.arc(moonX + 3, moonY - 3, 11, 0, Math.PI * 2); ctx.fill();
   }
-
-  // ═══════════════════════════════════
-  // 绘制 3D 透视建筑
-  // ═══════════════════════════════════
-  function drawBuilding3D() {
-    const now = performance.now() * 0.001;
-    const d = modal._mData;
-    const cx = bldCX, cy = bldCY;
-    const roofH = bh * 0.2;
-
-    // ── 地面 ──
-    // 远处地面
-    const farGnd = ctx.createLinearGradient(0, cy + bh * 0.3, 0, H);
-    farGnd.addColorStop(0, '#5a7a95');
-    farGnd.addColorStop(0.25, '#8aa8c0');
-    farGnd.addColorStop(0.6, '#b0c8d8');
-    farGnd.addColorStop(1, '#d4e0ec');
-    ctx.fillStyle = farGnd;
-    ctx.fillRect(0, cy + bh * 0.3, W, H - cy - bh * 0.3);
-
-    // 建筑阴影（投影在雪地上）
-    ctx.fillStyle = 'rgba(20,40,60,0.2)';
-    ctx.beginPath();
-    ctx.moveTo(cx - bw * 0.7, cy + bh * 0.3);
-    ctx.lineTo(cx + bw * 0.5 + depth * 0.6, cy + bh * 0.32);
-    ctx.lineTo(cx + bw * 0.7 + depth * 0.5, cy + bh * 0.28);
-    ctx.lineTo(cx - bw * 0.5, cy + bh * 0.26);
-    ctx.closePath(); ctx.fill();
-
-    // 入口通道（雪地上的路径痕迹）
-    const entX = cx + depth * 0.08, entY = cy + bh * 0.15;
-    ctx.save();
-    ctx.globalAlpha = 0.08;
-    for (let p = 0; p < 5; p++) {
-      const ang = Math.PI * 0.35 + p * Math.PI * 0.08;
-      const pathLen = bw * 2.0 + p * bw * 0.3;
-      ctx.beginPath();
-      ctx.moveTo(entX + (p - 2) * bw * 0.12, entY);
-      ctx.lineTo(cx + Math.cos(ang) * pathLen, cy + Math.sin(ang) * pathLen * 0.4);
-      ctx.strokeStyle = '#c8ddf0';
-      ctx.lineWidth = 7 + p * 2;
-      ctx.stroke();
+  function frame(now){
+    if(state.closed || modal._mData!==state)return;
+    const dt=Math.min(.1,Math.max(0,(now-state.last)/1000));state.last=now;
+    const incoming=Math.max(0,bld.flowIn-state.previousIn),outgoing=Math.max(0,bld.flowOut-state.previousOut);
+    state.previousIn=bld.flowIn;state.previousOut=bld.flowOut;
+    state.entered+=incoming;state.exited+=outgoing;
+    state.inDebt+=incoming/scale;state.outDebt+=outgoing/scale;
+    // Outgoing people still occupy the image until they reach its boundary.
+    for(let n=0;n<3 && state.outDebt>=1;n++){
+      const p=people.find(p=>p.phase!=='exit');if(!p)break;
+      Object.assign(p,{phase:'exit',...(()=>{const e=edge();return {tx:e.x,ty:e.y};})()});
+      state.outDebt-=1;
     }
-    ctx.globalAlpha = 1;
-    ctx.restore();
-
-    // ── 建筑主体 ──
-    // 正面（冰蓝色半透明）
-    const frontGrad = ctx.createLinearGradient(cx - bw, 0, cx + bw, 0);
-    frontGrad.addColorStop(0, 'rgba(80,155,210,0.5)');
-    frontGrad.addColorStop(0.3, 'rgba(140,200,240,0.65)');
-    frontGrad.addColorStop(0.7, 'rgba(160,215,245,0.6)');
-    frontGrad.addColorStop(1, 'rgba(100,170,220,0.45)');
-    ctx.fillStyle = frontGrad;
-
-    // 绘制正面（梯形→矩形，模拟微微仰视）
-    const frontTopW = bw * 1.7, frontBotW = bw * 1.8;
-    ctx.beginPath();
-    ctx.moveTo(cx - frontTopW, cy - bh);
-    ctx.lineTo(cx + frontTopW, cy - bh);
-    ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
-    ctx.lineTo(cx - frontBotW + depth * 0.15, cy + bh * 0.28);
-    ctx.closePath(); ctx.fill();
-
-    // 右侧面（透视侧墙，较暗）
-    const sideGrad = ctx.createLinearGradient(cx + frontTopW, 0, cx + frontTopW + depth, 0);
-    sideGrad.addColorStop(0, 'rgba(70,130,180,0.35)');
-    sideGrad.addColorStop(1, 'rgba(40,90,140,0.2)');
-    ctx.fillStyle = sideGrad;
-    ctx.beginPath();
-    ctx.moveTo(cx + frontTopW, cy - bh);
-    ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
-    ctx.lineTo(cx + frontBotW + depth, cy + bh * 0.28 - depth * 0.2);
-    ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
-    ctx.closePath(); ctx.fill();
-
-    // 建筑棱线（冰晶辉光）
-    ctx.strokeStyle = 'rgba(180,225,255,0.4)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cx - frontTopW, cy - bh); ctx.lineTo(cx - frontBotW + depth * 0.15, cy + bh * 0.28);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + frontTopW, cy - bh); ctx.lineTo(cx + frontBotW + depth * 0.15, cy + bh * 0.28);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx + frontTopW, cy - bh); ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
-    ctx.stroke();
-
-    // ── 屋顶 ──
-    const roofGrad = ctx.createLinearGradient(cx - bw * 0.6, cy - bh - roofH, cx + bw * 0.6 + depth, cy - bh);
-    roofGrad.addColorStop(0, 'rgba(120,200,240,0.55)');
-    roofGrad.addColorStop(0.5, 'rgba(180,225,250,0.7)');
-    roofGrad.addColorStop(1, 'rgba(100,180,225,0.45)');
-    ctx.fillStyle = roofGrad;
-    const roofTop = cy - bh - roofH;
-    ctx.beginPath();
-    ctx.moveTo(cx - frontTopW * 0.75, roofTop);
-    ctx.lineTo(cx + frontTopW * 0.7, roofTop);
-    ctx.lineTo(cx + frontTopW + depth, cy - bh + depth * 0.3);
-    ctx.lineTo(cx + frontTopW, cy - bh);
-    ctx.lineTo(cx - frontTopW, cy - bh);
-    ctx.closePath(); ctx.fill();
-
-    // 屋顶积雪
-    ctx.fillStyle = 'rgba(220,235,250,0.65)';
-    ctx.beginPath();
-    ctx.moveTo(cx - frontTopW * 0.7, roofTop);
-    ctx.lineTo(cx + frontTopW * 0.65, roofTop);
-    ctx.lineTo(cx + frontTopW * 0.75 + depth * 0.1, roofTop + 4);
-    ctx.lineTo(cx - frontTopW * 0.65 + depth * 0.1, roofTop + 4);
-    ctx.closePath(); ctx.fill();
-    // 屋顶积雪辉光
-    ctx.strokeStyle = 'rgba(220,240,255,0.35)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // ── 窗户网格（含闪烁动画）──
-    for (let r = 0; r < wRows; r++) {
-      for (let c = 0; c < wCols; c++) {
-        const ws = windowStates[r][c];
-        // 闪烁
-        const flicker = Math.sin(now * ws.flickerSpeed + ws.flickerPhase) * 0.5 + 0.5;
-        const lit = ws.baseLit && flicker > 0.25;
-
-        const wx = cx - bw * 0.65 + c * (bw * 1.35 / wCols);
-        const wy = cy - bh * 0.82 + r * (bh * 0.75 / wRows);
-        const ww = bw * 1.2 / wCols, wh = bh * 0.5 / wRows;
-
-        // 窗格辉光
-        if (lit) {
-          const glowGrad = ctx.createRadialGradient(wx + ww / 2, wy + wh / 2, 0, wx + ww / 2, wy + wh / 2, ww * 0.8);
-          glowGrad.addColorStop(0, 'rgba(255,235,180,0.4)');
-          glowGrad.addColorStop(1, 'rgba(255,200,120,0)');
-          ctx.fillStyle = glowGrad;
-          ctx.fillRect(wx - 1, wy - 1, ww + 2, wh + 2);
-        }
-        ctx.fillStyle = lit ? 'rgba(255,235,180,0.7)' : 'rgba(30,45,80,0.5)';
-        ctx.fillRect(wx, wy, ww - 1.2, wh - 1.2);
-        if (lit) {
-          ctx.strokeStyle = 'rgba(255,240,200,0.3)';
-          ctx.lineWidth = 0.5;
-          ctx.strokeRect(wx, wy, ww - 1.2, wh - 1.2);
-        }
-      }
+    for(let n=0;n<3 && state.inDebt>=1 && people.length<160;n++){
+      people.push(person('enter',edge(),randomTarget()));state.inDebt-=1;
     }
-
-    // ── 入门（正面底部拱门）──
-    const doorW = bw * 0.22, doorH = bh * 0.2;
-    const doorX = cx - doorW / 2 + depth * 0.08, doorY = cy + bh * 0.08;
-    const doorGrad = ctx.createLinearGradient(doorX, 0, doorX + doorW, 0);
-    doorGrad.addColorStop(0, 'rgba(20,40,70,0.6)');
-    doorGrad.addColorStop(0.5, 'rgba(255,220,150,0.25)');
-    doorGrad.addColorStop(1, 'rgba(20,40,70,0.6)');
-    ctx.fillStyle = doorGrad;
-    ctx.beginPath();
-    ctx.arc(doorX + doorW / 2, doorY, doorW / 2, Math.PI, 0);
-    ctx.lineTo(doorX + doorW, doorY + doorH * 0.6);
-    ctx.lineTo(doorX, doorY + doorH * 0.6);
-    ctx.closePath(); ctx.fill();
-
-    // ── 冰晶特效（建筑边缘发光）──
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const edgeGlowGrad = ctx.createLinearGradient(cx - bw * 1.1, 0, cx - bw * 0.5, 0);
-    edgeGlowGrad.addColorStop(0, 'rgba(100,200,255,0)');
-    edgeGlowGrad.addColorStop(0.5, 'rgba(150,220,255,0.12)');
-    edgeGlowGrad.addColorStop(1, 'rgba(100,200,255,0)');
-    ctx.fillStyle = edgeGlowGrad;
-    ctx.fillRect(cx - bw * 1.1, cy - bh - roofH, bw * 0.6, bh + roofH + 10);
-    ctx.restore();
-
-    // 标签
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = 'bold 14px "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🏛 ' + bld.label, cx + depth * 0.15, cy - bh - roofH - 12);
-    ctx.textAlign = 'start';
+    // Zero population is allowed: do not repopulate an empty zone.
+    if(bld.density===0 && smoothState[bld.label].density.target===0){
+      people.filter(p=>p.phase!=='exit').forEach(p=>{const e=edge();p.phase='exit';p.tx=e.x;p.ty=e.y;});
+      state.inDebt=0;state.outDebt=0;
+    }
+    for(let i=people.length-1;i>=0;i--){
+      const p=people[i],dx=p.tx-p.x,dy=p.ty-p.y,dist=Math.hypot(dx,dy),step=Math.min(dist,p.speed*dt);
+      if(dist>1){p.x+=dx/dist*step;p.y+=dy/dist*step;}
+      else if(p.phase==='exit'){people.splice(i,1);}
+      else if(p.phase==='enter'){p.phase='idle';p.wait=.5;}
+      else {p.wait-=dt;if(p.wait<=0){const t=randomTarget();p.tx=t.x;p.ty=t.y;p.wait=1+Math.random()*2;}}
+    }
+    ctx.drawImage(background,0,0);
+    people.slice().sort((a,b)=>a.y-b.y).forEach(p=>drawPerson(p,now/1000));
+    ctx.fillStyle='rgba(255,255,255,.45)';
+    flakes.forEach(f=>{f.y+=f.s*dt;if(f.y>H)f.y=0;ctx.fillRect(f.x,f.y,1.4,1.4);});
+    ctx.fillStyle='rgba(5,19,34,.94)';ctx.fillRect(0,494,W,46);
+    ctx.font='14px "Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillStyle='#d9f4ff';
+    ctx.fillText('区域人数 '+bld.density+'人   排队 '+getQueueFromDensity(bld)+'分钟',20,521);
+    ctx.fillStyle='#ff9a9f';ctx.fillText('本次观察：进入 '+Math.round(state.entered)+' / 离开 '+Math.round(state.exited),370,521);
+    ctx.fillStyle='#a9c7d8';ctx.textAlign='right';ctx.font='12px sans-serif';
+    ctx.fillText('示意比例约1:'+scale+'  '+new Date().toLocaleTimeString('zh-CN'),940,521);
+    modal._rafId=requestAnimationFrame(frame);
   }
-
-  // ═══════════════════════════════════
-  // 每帧渲染
-  // ═══════════════════════════════════
-  function renderFrame() {
-    const now = performance.now();
-    const delta = Math.min(0.1, (now - lastTime) / 1000);
-    lastTime = now;
-    frameN++;
-
-    const d = modal._mData;
-    if (!d) return;
-
-    // 夜空 + 极光 + 星空 + 月亮
-    drawNightSky();
-
-    // 建筑
-    drawBuilding3D();
-
-    // ── 雪粒子 ──
-    if (!d._snowFlakes) {
-      d._snowFlakes = [];
-      for (let i = 0; i < 100; i++) {
-        d._snowFlakes.push({
-          x: Math.random() * W, y: Math.random() * H,
-          r: 0.3 + Math.random() * 1.2,
-          vy: 6 + Math.random() * 20, vx: (Math.random() - 0.5) * 8,
-          wobbleAmp: 0.3 + Math.random() * 1.5, wobbleSpeed: 1 + Math.random() * 2,
-          alpha: 0.3 + Math.random() * 0.5,
-        });
-      }
-    }
-    d._snowFlakes.forEach(f => {
-      f.y += f.vy * delta;
-      f.x += f.vx * delta + Math.sin(now * 0.003 * f.wobbleSpeed) * f.wobbleAmp;
-      if (f.y > H + 10) { f.y = -10; f.x = Math.random() * W; }
-      if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10;
-      // 雪花辉光
-      const glowGrad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 2);
-      glowGrad.addColorStop(0, `rgba(220,235,255,${f.alpha})`);
-      glowGrad.addColorStop(1, 'rgba(180,210,240,0)');
-      ctx.fillStyle = glowGrad;
-      ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 2.2, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = `rgba(240,245,255,${f.alpha + 0.15})`;
-      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
-    });
-
-    // ── 人员系统（数据驱动：密度变化 → 进出动画）──
-    const curDensity = d.bld.density;
-    const densityDelta = curDensity - _prevDensity;
-    const edgeDist = Math.min(bw * 1.4, 200);
-    const peoplePerUnit = 0.38; // 每个人物粒子代表多少人
-
-    // 密度增加 → 累积进场需求（跨帧积分）
-    if (densityDelta > 0) { _spawnDebt += densityDelta * peoplePerUnit; }
-    // 密度减少 → 累积出场需求
-    if (densityDelta < 0) { _spawnDebt += densityDelta * peoplePerUnit; }
-
-    // 批次生成进场人物（2~5人一组，沿贝塞尔曲线走向建筑）
-    while (_spawnDebt >= 0.6 && d.people.length < 120) {
-      const batchSize = Math.min(3 + Math.floor(Math.random() * 3), Math.floor(_spawnDebt + 0.99), 120 - d.people.length);
-      const baseAngle = Math.random() * Math.PI * 0.5 + Math.PI * 0.25;
-      for (let b = 0; b < batchSize; b++) {
-        _spawnDebt -= 1;
-        const angle = baseAngle + (b - batchSize / 2) * 0.08;
-        const startDist = edgeDist + Math.random() * 60;
-        const sx = bldCX + Math.cos(angle) * startDist;
-        const sy = bldCY + Math.sin(angle) * startDist * 0.4;
-        // 控制点（弧线弯曲）
-        const cpAngle = baseAngle + 0.08;
-        const cpX = bldCX + Math.cos(cpAngle) * startDist * 0.55;
-        const cpY = bldCY + Math.sin(cpAngle) * startDist * 0.25 - 15;
-        // 路径长度近似
-        const pathLen = Math.hypot(sx - entranceX, sy - entranceY) * 1.25;
-        d.people.push({
-          x: sx, y: sy,
-          phase: 'enter', speed: 65 + Math.random() * 65, idleTimer: 0,
-          pathT: 0, pathLen: pathLen,
-          pathSX: sx, pathSY: sy, pathCPX: cpX, pathCPY: cpY,
-          pathEX: entranceX + (Math.random() - 0.5) * bw * 0.25,
-          pathEY: entranceY + Math.random() * bh * 0.06,
-          pauseFrames: 0,
-        });
-      }
-    }
-
-    // 批次转换出场人物（2~5人一组，从建筑走向边缘）
-    while (_spawnDebt <= -0.6 && d.people.length > 0) {
-      const batchSize = Math.min(2 + Math.floor(Math.random() * 4), Math.floor(-_spawnDebt + 0.99));
-      const baseAngle = Math.random() * Math.PI * 0.5 + Math.PI * 0.25;
-      for (let b = 0; b < batchSize; b++) {
-        _spawnDebt += 1;
-        const idx = d.people.findIndex(p => p.phase === 'idle');
-        if (idx < 0) break;
-        const angle = baseAngle + (b - batchSize / 2) * 0.1;
-        const exitDist = edgeDist + 30 + Math.random() * 50;
-        d.people[idx].phase = 'exit';
-        d.people[idx].tx = bldCX + Math.cos(angle) * exitDist;
-        d.people[idx].ty = bldCY + Math.sin(angle) * exitDist * 0.4;
-        d.people[idx].speed = 65 + Math.random() * 85;
-      }
-    }
-
-    // 当人群太少时直接补充（分层散布，防止画面空空）
-    const minPeople = Math.max(5, Math.round(curDensity * 0.12));
-    while (d.people.length < minPeople) {
-      const target = getLayerTarget();
-      d.people.push({
-        x: target.tx, y: target.ty,
-        tx: target.tx, ty: target.ty,
-        phase: 'idle', speed: 30 + Math.random() * 50, idleTimer: Math.random() * 60,
-      });
-    }
-
-    _prevDensity = curDensity;
-
-    // ── 绘制人物（小人形状：头+身体+高光 + 行走弹跳）──
-    function drawPerson(x, y, r, g, b, a, isRed) {
-      const drawY = y; // y 已含弹跳偏移
-      // 身体光晕（红色人物光晕更强）
-      const glowR = isRed ? 3.5 : 3;
-      const glowA = isRed ? 0.55 : 0.45;
-      const glow = ctx.createRadialGradient(x, drawY + 2, 0, x, drawY + 2, glowR * 1.5);
-      glow.addColorStop(0, `rgba(${r},${g},${b},${glowA})`);
-      glow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath(); ctx.arc(x, drawY + 2, glowR * 1.5, 0, Math.PI * 2); ctx.fill();
-      // 身体
-      ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
-      ctx.beginPath();
-      ctx.roundRect(x - 2, drawY, 4, 3.8, 1.4);
-      ctx.fill();
-      // 头
-      ctx.beginPath(); ctx.arc(x, drawY - 2.2, 2, 0, Math.PI * 2); ctx.fill();
-      // 高光
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.beginPath(); ctx.arc(x - 0.5, drawY - 2.7, 0.7, 0, Math.PI * 2); ctx.fill();
-    }
-
-    // ── 人物移动循环 ──
-    for (let i = d.people.length - 1; i >= 0; i--) {
-      const p = d.people[i];
-      // 行走弹跳偏移（移动中的人物才有）
-      const bounceY = p.phase !== 'idle' ? Math.sin(frameN * 0.35 + i * 1.7) * 0.7 : 0;
-
-      if (p.phase === 'enter') {
-        // 🔴 进场：沿贝塞尔曲线走向建筑门口
-        if (p.pauseFrames > 0) {
-          // 检票停顿阶段
-          p.pauseFrames--;
-          if (p.pauseFrames <= 0) {
-            // 停顿结束，散开到活动区域
-            p.phase = 'idle';
-            const target = getLayerTarget();
-            p.tx = target.tx; p.ty = target.ty;
-            p.idleTimer = 55 + Math.random() * 110;
-            p.speed = 30 + Math.random() * 50;
-            // 从入口跳到目标附近
-            p.x = entranceX + (Math.random() - 0.5) * 10;
-            p.y = entranceY + (Math.random() - 0.5) * 6;
-          } else {
-            // 停顿中，橙色过渡色
-            drawPerson(p.x, p.y, 255, 165, 80, 0.85, true);
-          }
-        } else {
-          // 沿贝塞尔路径前进
-          p.pathT += (p.speed * delta) / Math.max(1, p.pathLen);
-          if (p.pathT >= 1) {
-            // 到达入口 → 检票停顿 15-30 帧
-            p.pathT = 1;
-            const pos = bezierPos(1, p.pathSX, p.pathSY, p.pathCPX, p.pathCPY, p.pathEX, p.pathEY);
-            p.x = pos.x; p.y = pos.y;
-            p.pauseFrames = 15 + Math.floor(Math.random() * 16);
-          } else {
-            const pos = bezierPos(p.pathT, p.pathSX, p.pathSY, p.pathCPX, p.pathCPY, p.pathEX, p.pathEY);
-            p.x = pos.x; p.y = pos.y;
-          }
-          const eDist = Math.hypot(p.x - entranceX, p.y - entranceY);
-          const t = Math.min(1, 1 - eDist / Math.max(1, edgeDist));
-          // 行走弹跳
-          const walkY = p.y + bounceY;
-          drawPerson(p.x, walkY, 255, Math.round(50 + t * 90), Math.round(30 + t * 100), 0.9, true);
-        }
-      } else if (p.phase === 'exit') {
-        // 🔴 出场：从建筑走向边缘（亮红色，越远越红）
-        const dx = p.tx - p.x, dy = p.ty - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 6 || p.x < -40 || p.x > W + 40 || p.y < -40 || p.y > H + 40) {
-          d.people.splice(i, 1); continue;
-        }
-        const vx = (dx / dist) * p.speed * delta;
-        const vy = (dy / dist) * p.speed * delta;
-        p.x += vx; p.y += vy;
-        const eDist = Math.hypot(p.x - bldCX, p.y - bldCY);
-        const t = Math.min(1, eDist / Math.max(1, edgeDist));
-        const walkY = p.y + bounceY;
-        drawPerson(p.x, walkY, 255, Math.round(120 - t * 80), Math.round(100 - t * 80), 0.88, true);
-      } else {
-        // 🔵 场内：冰蓝色，3层活动区域自然走动
-        p.idleTimer--;
-        const dx = p.tx - p.x, dy = p.ty - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const vx = dist > 0.5 ? (dx / dist) * p.speed * delta : 0;
-        const vy = dist > 0.5 ? (dy / dist) * p.speed * delta : 0;
-        if (p.idleTimer <= 0) {
-          // 分层随机漫步
-          const target = getLayerTarget();
-          p.tx = target.tx; p.ty = target.ty;
-          p.idleTimer = 35 + Math.random() * 90;
-        }
-        if (dist > 1.5) { p.x += vx * 0.45; p.y += vy * 0.45; }
-        // 冰蓝+微呼吸效果
-        const breathe = 0.7 + Math.sin(frameN * 0.05 + i) * 0.08;
-        drawPerson(p.x, p.y, 120, 195, 240, breathe, false);
-      }
-    }
-
-    // ── 入口路径指示（雪地上的足迹方向）──
-    ctx.save();
-    ctx.globalAlpha = 0.12;
-    ctx.setLineDash([3, 12]);
-    ctx.strokeStyle = '#a0d0f0';
-    ctx.lineWidth = 1.2;
-    for (let a = 0; a < 3; a++) {
-      const ang = Math.PI * 0.35 + a * Math.PI * 0.15;
-      ctx.beginPath();
-      ctx.moveTo(entranceX, entranceY);
-      ctx.lineTo(bldCX + Math.cos(ang) * edgeDist, bldCY + Math.sin(ang) * edgeDist * 0.4);
-      ctx.stroke();
-    }
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 1;
-    ctx.restore();
-
-    // ── 进出统计标签（累积显示 + 淡出动画）──
-    // 更新流动标签
-    if (Math.abs(densityDelta) > 0.5) {
-      _flowLabel.text = densityDelta > 0
-        ? '↑ +' + Math.round(densityDelta) + ' 人进场'
-        : '↓ ' + Math.round(densityDelta) + ' 人离场';
-      _flowLabel.alpha = 1.0;
-      _flowLabel.color = densityDelta > 0 ? 'rgba(255,70,50,' : 'rgba(255,140,70,';
-    }
-    // 淡出动画
-    if (_flowLabel.alpha > 0.01) {
-      _flowLabel.alpha *= 0.94;
-      const a = _flowLabel.alpha.toFixed(3);
-      ctx.fillStyle = _flowLabel.color + a + ')';
-      ctx.font = 'bold 11px "Microsoft YaHei", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(_flowLabel.text, entranceX, entranceY - 18);
-    }
-    ctx.textAlign = 'start';
-
-    // ── 右侧信息面板 ──
-    const panelX = W * 0.62, panelY = H * 0.15;
-    // 半透明背景面板
-    ctx.fillStyle = 'rgba(5,15,30,0.7)';
-    ctx.strokeStyle = 'rgba(60,150,220,0.3)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(panelX, panelY, W * 0.35, H * 0.6, 8);
-    ctx.fill(); ctx.stroke();
-
-    // 标题
-    ctx.fillStyle = 'rgba(180,220,255,0.9)';
-    ctx.font = 'bold 13px "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('📊 实时数据', panelX + W * 0.175, panelY + 22);
-    ctx.textAlign = 'start';
-
-    // 分隔线
-    ctx.strokeStyle = 'rgba(60,150,220,0.2)';
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(panelX + 15, panelY + 32); ctx.lineTo(panelX + W * 0.35 - 15, panelY + 32);
-    ctx.stroke();
-
-    // 面板人数变化箭头
-    const panelDelta = d.bld.density - _prevPanelDensity;
-    if (Math.abs(panelDelta) > 0) { _prevPanelDensity = d.bld.density; _panelFlashFrames = 30; }
-    if (_panelFlashFrames > 0) _panelFlashFrames--;
-    const deltaStr = _panelFlashFrames > 0
-      ? (panelDelta > 0 ? '  ↑' : '  ↓')
-      : '';
-    const deltaColor = panelDelta > 0 ? '#22c55e' : '#ef4444';
-
-    const lineH = 28, startY = panelY + 48;
-    const lines = [
-      { label: '👥 当前人数', value: d.bld.density.toLocaleString() + ' 人', color: '#e0f0ff', delta: deltaStr, deltaColor: deltaColor },
-      { label: '📐 容量比率', value: Math.round(d.bld.density / Math.max(1, bld.width * bld.depth * 12) * 100) + '%',
-        color: d.bld.density / Math.max(1, bld.width * bld.depth * 12) > 0.85 ? '#ef4444' : d.bld.density / Math.max(1, bld.width * bld.depth * 12) > 0.6 ? '#f59e0b' : '#22c55e' },
-      { label: '🕐 排队预估', value: Math.round(d.bld.density / Math.max(1, bld.width * bld.depth * 12) * 45) + ' 分钟', color: '#b0d0f0' },
-      { label: '🏛 建筑类型', value: ({ tower:'塔楼', palace:'宫殿', slide:'冰滑梯', dome:'穹顶', gate:'大门', pagoda:'宝塔', sculptures:'冰雕' }[bld.type] || bld.type), color: '#8ab8d8' },
-      { label: '📏 建筑尺寸', value: bld.width + '×' + bld.depth + '×' + bld.height + 'm', color: '#8ab8d8' },
-      { label: '📍 摄像头', value: cameraName, color: '#8ab8d8' },
-    ];
-    lines.forEach((l, i) => {
-      const ly = startY + i * lineH;
-      ctx.fillStyle = 'rgba(150,190,220,0.7)';
-      ctx.font = '11px "Microsoft YaHei", sans-serif';
-      ctx.fillText(l.label, panelX + 14, ly);
-      // 主值
-      ctx.fillStyle = l.color;
-      ctx.font = 'bold 12px "Microsoft YaHei", sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(l.value, panelX + W * 0.35 - 14, ly);
-      // 变化箭头（仅第一行）
-      if (l.delta && _panelFlashFrames > 0) {
-        const flashAlpha = Math.min(1, _panelFlashFrames / 15) * (_panelFlashFrames % 8 < 4 ? 1 : 0.4);
-        // hex → rgba
-        const h = l.deltaColor;
-        const rr = parseInt(h.slice(1,3), 16), gg = parseInt(h.slice(3,5), 16), bb = parseInt(h.slice(5,7), 16);
-        ctx.fillStyle = `rgba(${rr},${gg},${bb},${flashAlpha.toFixed(2)})`;
-        ctx.font = 'bold 13px sans-serif';
-        ctx.fillText(l.delta, panelX + W * 0.35 - 12, ly);
-      }
-      ctx.textAlign = 'start';
-    });
-
-    // 容量负载条
-    const barX = panelX + 14, barY = startY + lines.length * lineH + 8;
-    const barW = W * 0.35 - 28, barH = 8;
-    const ratio = d.bld.density / Math.max(1, bld.width * bld.depth * 12);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.06)';
-    ctx.beginPath(); ctx.roundRect(barX, barY, barW, barH, 4); ctx.fill();
-
-    const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-    barGrad.addColorStop(0, ratio > 0.85 ? '#ef4444' : '#38bdf8');
-    barGrad.addColorStop(0.6, ratio > 0.85 ? '#f59e0b' : '#22c55e');
-    barGrad.addColorStop(1, '#22c55e');
-    ctx.fillStyle = barGrad;
-    ctx.beginPath(); ctx.roundRect(barX, barY, Math.max(4, barW * Math.min(1, ratio)), barH, 4); ctx.fill();
-
-    ctx.fillStyle = 'rgba(200,220,240,0.8)';
-    ctx.font = '9px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('负载: ' + Math.round(ratio * 100) + '%', barX + barW / 2, barY - 4);
-    ctx.textAlign = 'start';
-
-    // 状态指示
-    let statusText, statusColor;
-    if (ratio > 0.85) { statusText = '⚠️ 接近饱和 — 建议限流'; statusColor = '#ef4444'; }
-    else if (ratio > 0.6) { statusText = '🟡 较为繁忙 — 关注排队'; statusColor = '#f59e0b'; }
-    else { statusText = '🟢 运营正常 — 体验舒适'; statusColor = '#22c55e'; }
-    ctx.fillStyle = statusColor;
-    ctx.font = 'bold 12px "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(statusText, panelX + W * 0.175, barY + barH + 18);
-    ctx.textAlign = 'start';
-
-    // 帧号（debug）
-    if (frameN % 60 === 0) {
-      d.frameN = frameN;
-    }
-  }
-
-  function monitorLoop() {
-    if (!modal.classList.contains('show')) { cleanupMonitor(); return; }
-    _rafId = requestAnimationFrame(monitorLoop);
-    modal._rafId = _rafId;
-    try { renderFrame(); } catch(e) { console.error('Monitor render error:', e); }
-  }
-
-  function cleanupMonitor() {
-    if (modal._rafId) { cancelAnimationFrame(modal._rafId); modal._rafId = null; }
-    modal._mData = null;
-    container.innerHTML = '';
-  }
-
-  _rafId = requestAnimationFrame(monitorLoop);
-  modal._rafId = _rafId;
+  frame(performance.now());
 }
-
-function closeMonitor() {
-  const modal = document.getElementById('monitor-modal');
-  const container = document.getElementById('monitor-canvas');
-  if (modal._rafId) { cancelAnimationFrame(modal._rafId); modal._rafId = null; }
-  modal._mData = null;
-  container.innerHTML = '';
+function closeMonitor(){
+  const modal=document.getElementById('monitor-modal');
+  if(modal._mData) modal._mData.closed=true;
+  if(modal._rafId!=null) cancelAnimationFrame(modal._rafId);
+  modal._rafId=null;modal._mData=null;
+  document.getElementById('monitor-canvas').replaceChildren();
   modal.classList.remove('show');
 }
-window.closeMonitor = closeMonitor;
+window.closeMonitor=closeMonitor;
 
 function focusBuilding() {
   if (!detailBuilding) return;
@@ -3414,7 +2856,7 @@ function predictNext7Days(baseVisitors) {
       date: new Date(Date.now() + (i+1)*86400000),
       weather: weathers[i], temp: temps[i],
       value: predicted, capacity,
-      peak: i === 2 || i === 5, // 周末
+      peak: [0,6].includes(new Date(Date.now()+(i+1)*86400000).getDay()),
     });
   }
   return days;
@@ -3436,13 +2878,13 @@ function updateAIPrediction() {
 
   chart.setOption({
     tooltip: { trigger: 'axis' },
-    legend: { data: ['预测客流','容量上限','置信区间'], textStyle: { color: '#8ab4d8', fontSize: 9 }, top: 0 },
+    legend: { data: ['预测客流','容量上限','模拟波动范围'], textStyle: { color: '#8ab4d8', fontSize: 9 }, top: 0 },
     grid: { top: 24, right: 12, bottom: 24, left: 40 },
     xAxis: { type: 'category', data: dates, axisLabel: { color: '#4a6a8a', fontSize: 9 }, axisLine: { lineStyle: { color: '#1e3a5f' } } },
     yAxis: { type: 'value', axisLabel: { color: '#4a6a8a', fontSize: 9 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.03)' } } },
     series: [
-      { name: '置信区间', type: 'line', data: values.map(v => v + 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true },
-      { name: '置信区间', type: 'line', data: values.map(v => v - 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true,
+      { name: '模拟波动范围', type: 'line', data: values.map(v => v + 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true },
+      { name: '模拟波动范围', type: 'line', data: values.map(v => v - 600), lineStyle: { opacity: 0 }, symbol: 'none', areaStyle: { color: 'rgba(56,189,248,0.08)' }, stack: 'ci', silent: true,
         itemStyle: { opacity: 0 } },
       { name: '预测客流', type: 'line', data: values, smooth: true, lineStyle: { color: '#38bdf8', width: 2 }, itemStyle: { color: '#38bdf8' }, symbol: 'circle', symbolSize: 4,
         markLine: { silent: true, symbol: 'none', data: predictCache.filter(d=>d.peak).map(d => ({ xAxis: dates[predictCache.indexOf(d)], label: { formatter:'周末', color:'#f59e0b', fontSize:8 }, lineStyle:{color:'#f59e0b',type:'dotted'} })) } },
@@ -3492,7 +2934,8 @@ const reviewPool = [
   { user: '背包客', text: '指示标识不太清楚，容易迷路', sentiment: 'neg', category: '设施' },
 ];
 
-let reviewQueue = [...reviewPool].map(r => ({ ...r, rid: reviewIdCounter++ }));
+const seenReviewKeys = new Set();
+let reviewQueue = reviewPool.map((r,i) => ({...r, rid:reviewIdCounter++, createdAt:Date.now()-i*120000}));
 let sentimentHistory = [];
 for (let i = 0; i < 20; i++) {
   sentimentHistory.push({ time: i, posRate: 0.65 + (Math.random() - 0.5) * 0.2 });
@@ -3542,8 +2985,8 @@ function updateSemanticAnalysis() {
   const posCount = reviewQueue.filter(r => r.sentiment === 'pos').length;
   const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
   const total = posCount + negCount || 1;
-  const posPct = Math.round(posCount / total * 100);
-  const negPct = 100 - posPct;
+  const posPct = Math.round(posCount / Math.max(1,reviewQueue.length) * 100);
+  const negPct = Math.round(negCount / Math.max(1,reviewQueue.length) * 100);
 
   const posBar = document.getElementById('sentiment-pos-bar');
   const negBar = document.getElementById('sentiment-neg-bar');
@@ -3956,49 +3399,56 @@ function findBuildingForCamera(camIdx) {
 // ── 评论系统 (增量更新：新评论滑入，旧评论下移) ──
 let lastReviewTime = Date.now();
 
-function renderSingleReview(r, i) {
-  const timeAgo = i === 0 ? '刚刚' : (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
-  const sentClass = r.sentiment === 'pos' ? 'pos' : 'neg';
-  const sentText = r.sentiment === 'pos' ? '😊' : '😞';
-  return `<div class="review-item" style="animation:slideDown 0.4s ease-out;cursor:pointer;" onclick="clickReviewItem('${r.rid}')" data-rid="${r.rid}" title="点击查看详情">
-    <span class="rev-user">${r.user}</span>
-    <span class="rev-text">${r.text}</span>
-    <span class="rev-sentiment ${sentClass}">${sentText}</span>
-    <span class="rev-time">${timeAgo}</span>
-  </div>`;
+function normalizeReview(r) {
+  const supplied = Date.parse(r.createdAt || r.timestamp);
+  return { ...r, rid: reviewIdCounter++, user: String(r.user || r.source || '游客'),
+    text: String(r.text || ''), sentiment: ['pos','neg','neutral'].includes(r.sentiment) ? r.sentiment : 'neutral',
+    createdAt: Number.isFinite(supplied) ? supplied : Date.now() };
 }
-
+function relativeReviewTime(time) {
+  const mins = Math.max(0, Math.floor((Date.now() - time) / 60000));
+  return mins === 0 ? '刚刚' : mins < 60 ? mins + '分钟前' : new Date(time).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+}
+function createReviewNode(r) {
+  const node = document.createElement('button');
+  node.type = 'button'; node.className = 'review-item'; node.dataset.rid = r.rid;
+  const fields = [['rev-user',r.user],['rev-text',r.text],['rev-sentiment '+r.sentiment,{pos:'正面',neg:'负面',neutral:'中性'}[r.sentiment]],['rev-time',relativeReviewTime(r.createdAt)]];
+  fields.forEach(([cls,text]) => {const span=document.createElement('span');span.className=cls;span.textContent=text;node.append(span);});
+  node.onclick = () => clickReviewItem(r.rid);
+  return node;
+}
+function updateReviewTimes() {
+  document.querySelectorAll('#review-feed .review-item').forEach(node => {
+    const r = reviewQueue.find(r => String(r.rid) === node.dataset.rid);
+    if (r) node.querySelector('.rev-time').textContent = relativeReviewTime(r.createdAt);
+  });
+}
 function updateReviews() {
-  // 全量渲染（初始化/tab切换时使用）
   const feed = document.getElementById('review-feed');
-  if (!feed) return;
-  const displayReviews = reviewQueue.slice(0, 8);
-  feed.innerHTML = displayReviews.map((r, i) => renderSingleReview(r, i)).join('');
-  updateSentimentStats();
+  if (!feed.children.length) reviewQueue.slice(0,8).forEach(r => feed.append(createReviewNode(r)));
+  updateReviewTimes(); updateSentimentStats();
 }
-
 function prependReview(r) {
-  // 增量插入：新评论从顶部滑入
   const feed = document.getElementById('review-feed');
-  if (!feed) return;
-  const div = document.createElement('div');
-  div.innerHTML = renderSingleReview(r, 0);
-  const newItem = div.firstElementChild;
-  feed.insertBefore(newItem, feed.firstChild);
-
-  // 更新已有评论的时间标签
-  const items = feed.querySelectorAll('.review-item');
-  for (let i = 1; i < items.length; i++) {
-    const timeEl = items[i].querySelector('.rev-time');
-    if (timeEl) timeEl.textContent = (i * 2 + Math.floor(Math.random() * 3)) + '分钟前';
+  const oldNodes = [...feed.children];
+  const oldY = new Map(oldNodes.map(n => [n,n.getBoundingClientRect().top]));
+  const oldScroll = feed.scrollTop;
+  const node = createReviewNode(r);
+  feed.prepend(node);
+  if (oldScroll > 0) feed.scrollTop = oldScroll + node.getBoundingClientRect().height;
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && oldScroll === 0) {
+    oldNodes.forEach(n => n.animate([{transform:'translateY('+(oldY.get(n)-n.getBoundingClientRect().top)+'px)'},{transform:'translateY(0)'}],{duration:320,easing:'ease-out'}));
   }
-
-  // 超过8条则移除最底部
-  if (items.length > 8) {
-    const last = items[items.length - 1];
-    last.classList.add('removing');
-    setTimeout(() => { if (last.parentNode) last.remove(); }, 400);
-  }
+  while (feed.children.length > 8) feed.lastElementChild.remove();
+}
+function ingestReview(raw) {
+  const key = [raw.id ?? '',raw.user || raw.source || '',raw.text || '',raw.timestamp || raw.createdAt || ''].join('|');
+  if (seenReviewKeys.has(key)) return;
+  seenReviewKeys.add(key);
+  if (seenReviewKeys.size > 500) seenReviewKeys.delete(seenReviewKeys.values().next().value);
+  const r=normalizeReview(raw);
+  reviewQueue.unshift(r); reviewQueue.length=Math.min(reviewQueue.length,50);
+  prependReview(r); updateSentimentStats();
 }
 
 function generateNewReview() {
@@ -4011,6 +3461,7 @@ function generateNewReview() {
 
   const newReview = {
     rid: reviewIdCounter++,
+    createdAt: Date.now(),
     user: tmpl.user + Math.floor(Math.random() * 100),
     text: text,
     sentiment: tmpl.sentiment,
@@ -4036,7 +3487,7 @@ function updateSentimentStats() {
   const negCount = reviewQueue.filter(r => r.sentiment === 'neg').length;
   const total = posCount + negCount || 1;
   const posPct = Math.round(posCount / total * 100);
-  const negPct = 100 - posPct;
+  const negPct = Math.round(negCount / Math.max(1,reviewQueue.length) * 100);
   const posBar = document.getElementById('sentiment-pos-bar');
   const negBar = document.getElementById('sentiment-neg-bar');
   if (posBar) { posBar.style.width = posPct + '%'; posBar.textContent = posPct + '% (' + posCount + '条)'; }
@@ -4087,38 +3538,7 @@ function updateVisitorList() {
 }
 
 // ── 动态巡检增强 ──
-function renderInspectionEnhanced() {
-  const list = document.getElementById('inspect-list');
-  if (!list) return;
-  const tasks = [
-    { name: '冰晶城堡安全巡查', status: 'done', time: '09:15' },
-    { name: '极速冰滑梯设备检查', status: 'doing', time: '10:30', eta: '11:00' },
-    { name: '餐饮广场卫生检查', status: 'doing', time: '10:45', eta: '11:20' },
-    { name: '北极光塔照明巡检', status: 'todo', time: '11:30' },
-    { name: '梦幻雪圈围栏检查', status: 'todo', time: '13:00' },
-    { name: '停车场消防设施巡检', status: 'todo', time: '14:00' },
-  ];
-  const statusMap = { done: '✅', doing: '🔄', todo: '⏳' };
-  const progress = tasks.filter(t => t.status === 'done').length;
-  const total = tasks.length;
-  list.innerHTML = `
-    <div style="margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;">
-        <span>巡检进度 ${progress}/${total}</span><span>${Math.round(progress/total*100)}%</span>
-      </div>
-      <div style="height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">
-        <div style="height:100%;width:${progress/total*100}%;background:linear-gradient(90deg,var(--accent-deep),var(--accent-ice));border-radius:2px;transition:width 1s;"></div>
-      </div>
-    </div>
-    ${tasks.map(t => `
-      <div class="alert-item">
-        <span>${statusMap[t.status]}</span>
-        <span style="font-weight:500;">${t.name}</span>
-        <span style="font-size:9px;color:var(--text-muted);float:right;">${t.time}${t.eta?' →'+t.eta:''}</span>
-      </div>
-    `).join('')}
-  `;
-}
+function renderInspectionEnhanced() { renderInspection(); }
 
 // ── 初始化新面板 ──
 // ── 游客画像数据 ──
@@ -4215,11 +3635,7 @@ const agencyData = [
 function updateAgencyList() {
   const container = document.getElementById('agency-list');
   if (!container) return;
-  const data = agencyData.map(a => ({
-    ...a,
-    visitors: a.visitors + Math.floor((Math.random() - 0.5) * 20),
-    teams: Math.max(1, a.teams + Math.floor((Math.random() - 0.5) * 2))
-  }));
+  const data = agencyData;
   container.innerHTML = data.map((a, i) => `
     <div class="agency-row" onclick="clickAgencyRow(${i})" style="cursor:pointer;" title="点击查看详情">
       <span style="color:var(--text-muted);width:16px;">${i + 1}</span>
@@ -4272,9 +3688,12 @@ function initNewPanels() {
 let globalTick = 0;
 function periodicUpdate() {
   globalTick++;
+  updateReviewTimes();
+  updateBubblesWithQueue();
+  if (detailBuilding) refreshDetailMetrics();
   // 每5秒生成新评论
   if (globalTick % 5 === 0) {
-    generateNewReview();
+    if (!wsConnected) generateNewReview();
   }
   // 每10秒刷新预测和服务短板
   if (globalTick % 10 === 0) {
@@ -4295,6 +3714,47 @@ function periodicUpdate() {
     document.getElementById('current-visitors').textContent = total.toLocaleString();
   }
 }
+
+function refreshDetailMetrics() {
+  const b=detailBuilding;if(!b)return;
+  const capacity=b.width*b.depth*12,ratio=b.density/capacity,queue=getQueueFromDensity(b);
+  const set=(id,text)=>{const el=document.getElementById(id);if(el)el.textContent=text;};
+  set('dt-count',b.density);set('dt-queue',queue+'分钟');set('dt-ratio',Math.round(ratio*100)+'%');
+  set('dt-actual-count',b.density+'人');set('dt-actual-ratio',Math.round(ratio*100)+'%');set('dt-actual-queue',queue+'分钟');
+  set('dt-status',ratio>.85?'🔴':ratio>.6?'🟡':'🟢');
+  set('dt-status-hint',ratio>.85?'接近饱和':ratio>.6?'较为繁忙':'正常运营');
+  set('dt-fence',ratio>.85?'⚠️ 超容预警':'正常');
+  set('dt-safety',ratio>.85?'C级':ratio>.6?'B级':'A级');
+  set('dt-suggest',ratio>.85?'建议限流分流':ratio>.6?'关注排队状况':'正常运营');
+  for(const [key,value] of [['count',b.density],['ratio',Math.round(ratio*100)],['queue',queue]]){
+    const predicted=parseFloat(document.getElementById('dt-ai-'+key).textContent);
+    const deviation=key==='ratio'?Math.round(value-predicted):Math.round((value-predicted)/Math.max(1,predicted)*100);
+    const el=document.getElementById('dt-dev-'+key);
+    el.textContent=(deviation>=0?'+':'')+deviation+'%';
+    el.className=Math.abs(deviation)<=10?'dev-ok':Math.abs(deviation)<=25?'dev-warn':'dev-bad';
+  }
+  document.getElementById('dt-btn-evac').style.display=ratio>.85?'':'none';
+}
+function toggleDrawer(side,force=false) {
+  const wasOpen=side && document.getElementById(side+'-panel').classList.contains('drawer-open');
+  ['left','right'].forEach(name=>{
+    const open=name===side && (force || !wasOpen);
+    document.getElementById(name+'-panel').classList.toggle('drawer-open',open);
+    document.querySelector('[aria-controls="'+name+'-panel"]').setAttribute('aria-expanded',String(open));
+  });
+  requestAnimationFrame(resizeAllCharts);
+}
+window.toggleDrawer=toggleDrawer;
+window.showInfo=showInfo;
+document.getElementById('left-panel').insertBefore(document.getElementById('inspection-panel'),document.getElementById('left-panel').children[1]);
+document.querySelectorAll('[onclick],.bubble-label,.camera-card').forEach(el=>{
+  if(!['BUTTON','A'].includes(el.tagName) && !el.id.endsWith('-modal')){el.tabIndex=0;el.setAttribute('role','button');}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeMonitor();closeDetail();closeSolution();toggleDrawer(null);}
+  if((e.key==='Enter'||e.key===' ') && e.target.matches('[role="button"]')){e.preventDefault();e.target.click();}
+});
+dataState.currentVisitors=buildingDefs.reduce((n,b)=>n+b.density,0);
 
 // ── Start ──
 initCameras();
