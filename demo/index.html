@@ -1819,6 +1819,7 @@ function toggleInspection() {
   panel.classList.toggle('collapsed');
   btn.textContent = panel.classList.contains('collapsed') ? '▶' : '▼';
 }
+window.toggleInspection = toggleInspection;
 function renderInspection() {
   const list = document.getElementById('inspect-list');
   list.innerHTML = inspectionTasks.map(t => {
